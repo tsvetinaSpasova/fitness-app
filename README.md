@@ -1,36 +1,45 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# FitCoach
 
-## Getting Started
+An online fitness coaching platform built with Next.js (App Router) and Supabase.
 
-First, run the development server:
+- **Coaches** manage clients, an exercise library, and programme templates; they review client workout logs, weekly check-ins, measurements, and keep private notes.
+- **Clients** follow their assigned programme, log workouts set by set, submit weekly check-ins, track measurements, and upload private progress photos.
+
+## Stack
+
+- Next.js 16 (App Router, server components, `src/proxy.ts` for auth-aware routing)
+- Supabase: Postgres + Auth + Storage, with row-level security throughout
+- Tailwind CSS 4
+- Playwright for end-to-end tests
+
+## Setup
+
+1. Copy `.env.local.example` to `.env.local` and fill in your Supabase project URL and anon key (Project Settings → API).
+2. Apply the migrations in `supabase/migrations/` (via `supabase db push` or the SQL editor).
+3. Optionally run `supabase/seed.sql` to create demo accounts and data.
+4. `npm install && npm run dev`
+
+### Demo accounts (from seed.sql)
+
+All with password `password123`:
+
+| Role | Email |
+| --- | --- |
+| Coach | alex@coach.com |
+| Client | sarah@example.com (plus marcus@, emma@, james@, olivia@example.com) |
+
+New sign-ups from the login page always create **client** accounts; coach accounts are created manually.
+
+## Data model notes
+
+- Programme **templates** have `client_id = null`. Assigning a programme to a client creates a **copy** (`client_id` + `original_programme_id` set) via the `copy_programme_for_client` RPC, so RLS lets the client read it and the coach can tweak it per client.
+- Progress photos live in the private `progress-photos` storage bucket under `<client_uuid>/…`; the app renders them through short-lived signed URLs.
+
+## Tests
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm run test:e2e      # requires the seeded demo accounts
+npm run test:e2e:ui
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The suite signs in as the demo coach and demo client (see `e2e/credentials.ts`) and runs against the dev server on port 3000, which Playwright starts automatically.

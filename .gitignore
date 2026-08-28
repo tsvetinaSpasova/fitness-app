@@ -12,6 +12,12 @@
 
 # testing
 /coverage
+/test-results/
+/playwright-report/
+/e2e/.auth/
+
+# supabase cli
+/supabase/.temp/
 
 # next.js
 /.next/
