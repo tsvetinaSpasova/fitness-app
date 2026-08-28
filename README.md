@@ -45,7 +45,7 @@ Two hosted Supabase projects (org `tsvetinaSpasova's Org`, region `eu-west-3`):
 | Prod | `fitness-app-prod` (`zyzptsshwqzbgzjafqef`) | Vercel deployment, real accounts only (no demo seed) |
 
 - The frontend deploys to **Vercel** (Hobby, project `fitness-app`, team `dgpt1`) from the `main` branch of [github.com/tsvetinaSpasova/fitness-app](https://github.com/tsvetinaSpasova/fitness-app); every push to `main` triggers a production deploy. Live at **https://fitness-app-coral-beta.vercel.app**.
-- Vercel's project env vars point `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` at the prod project; `.env.local` keeps local dev on the dev project.
+- Vercel's env vars (`NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY`) are scoped per environment: **Production** deploys use the prod Supabase project, **Preview** deploys (any non-`main` branch push) use the dev project — so pushing a branch gives a shareable preview URL running against dev data. `.env.local` keeps local dev on the dev project.
 - Schema changes: files in `supabase/migrations/` are applied to each environment via the Supabase SQL/query API (or `supabase db push`) — dev first, prod after the change ships.
 - Prod auth currently **auto-confirms** signups (Supabase's built-in mailer only delivers to team members). Set up custom SMTP and re-enable email confirmation before opening signups to strangers.
 - Signups always create client accounts; the prod coach account was created via the Auth admin API with `role: coach` metadata.
