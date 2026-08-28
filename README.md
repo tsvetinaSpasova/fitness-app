@@ -35,6 +35,21 @@ New sign-ups from the login page always create **client** accounts; coach accoun
 - Programme **templates** have `client_id = null`. Assigning a programme to a client creates a **copy** (`client_id` + `original_programme_id` set) via the `copy_programme_for_client` RPC, so RLS lets the client read it and the coach can tweak it per client.
 - Progress photos live in the private `progress-photos` storage bucket under `<client_uuid>/…`; the app renders them through short-lived signed URLs.
 
+## Environments & deployment
+
+Two hosted Supabase projects (org `tsvetinaSpasova's Org`, region `eu-west-3`):
+
+| Env | Supabase project | Used by |
+| --- | --- | --- |
+| Dev | `dgpt` (`eaagogwffqukuvuimcpk`) | local `npm run dev`, e2e tests, seeded demo data |
+| Prod | `fitness-app-prod` (`zyzptsshwqzbgzjafqef`) | Vercel deployment, real accounts only (no demo seed) |
+
+- The frontend deploys to **Vercel** (Hobby) from the `main` branch of the GitHub repo; every push to `main` triggers a production deploy.
+- Vercel's project env vars point `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` at the prod project; `.env.local` keeps local dev on the dev project.
+- Schema changes: files in `supabase/migrations/` are applied to each environment via the Supabase SQL/query API (or `supabase db push`) — dev first, prod after the change ships.
+- Prod auth currently **auto-confirms** signups (Supabase's built-in mailer only delivers to team members). Set up custom SMTP and re-enable email confirmation before opening signups to strangers.
+- Signups always create client accounts; the prod coach account was created via the Auth admin API with `role: coach` metadata.
+
 ## Tests
 
 ```bash
