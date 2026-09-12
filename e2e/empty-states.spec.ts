@@ -58,7 +58,7 @@ test.describe("Coach view of a client with no programme", () => {
     await expect(page.getByRole("heading", { name: NO_PROGRAMME_CLIENT.name })).toBeVisible();
 
     await expect(page.getByText("No programme assigned yet.")).toBeVisible();
-    // No programme → the assign button reads "Assign", not "Change",
+    // No programme → the assign button reads "Assign", not "Assign a new programme",
     // and there is no Edit link.
     await expect(page.getByRole("button", { name: "Assign", exact: true })).toBeVisible();
     await expect(page.getByRole("link", { name: "Edit" })).not.toBeVisible();

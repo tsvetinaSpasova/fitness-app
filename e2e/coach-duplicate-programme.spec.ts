@@ -42,7 +42,7 @@ test("duplicating a programme adds a full copy to the library", async ({ page })
   // it must show up in a client detail page's assign dropdown.
   await page.goto("/coach/clients");
   await page.getByRole("link", { name: /Sarah Johnson/ }).click();
-  await page.getByRole("button", { name: "Change" }).click();
+  await page.getByRole("button", { name: "Assign a new programme" }).click();
   await expect(
     page.getByRole("link", { name: "Full Body Phase 1 (copy)", exact: true })
   ).toBeVisible();

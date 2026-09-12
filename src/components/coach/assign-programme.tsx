@@ -13,7 +13,7 @@ interface TemplateOption {
  * Entry point for assigning a programme. Picking a template no longer
  * assigns it directly — it opens the programme editor prepopulated from the
  * template so the coach can customise before committing (see
- * /coach/clients/[id]/assign/[templateId]). "Change" is styled as a warning
+ * /coach/clients/[id]/assign/[templateId]). "Assign a new programme" is styled as a warning
  * because assigning replaces the client's current (possibly customised) copy.
  */
 export function AssignProgramme({
@@ -40,7 +40,7 @@ export function AssignProgramme({
         }
       >
         {hasProgramme && <AlertTriangle size={13} />}
-        {hasProgramme ? "Change" : "Assign"}
+        {hasProgramme ? "Assign a new programme" : "Assign"}
       </Button>
       {open && (
         <div className="absolute right-0 top-full mt-1 z-20 w-64 bg-white border border-slate-200 rounded-lg shadow-lg py-1">
