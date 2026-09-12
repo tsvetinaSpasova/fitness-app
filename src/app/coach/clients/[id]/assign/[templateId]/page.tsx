@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { ProgrammeEditor } from "@/components/coach/programme-editor";
-import { getClient, getExercises, getProgramme } from "@/lib/data";
+import { getClient, getExercises, getProgramme, getWorkoutTemplates } from "@/lib/data";
 
 // Assign flow: the editor opens prepopulated from the chosen template, and
 // saving creates + assigns a fresh copy for this client. Only real templates
@@ -11,10 +11,11 @@ export default async function AssignProgrammePage({
   params: Promise<{ id: string; templateId: string }>;
 }) {
   const { id, templateId } = await params;
-  const [client, template, exercises] = await Promise.all([
+  const [client, template, exercises, templates] = await Promise.all([
     getClient(id),
     getProgramme(templateId),
     getExercises(),
+    getWorkoutTemplates(),
   ]);
   if (!client || !template || template.clientId) notFound();
 
@@ -23,6 +24,7 @@ export default async function AssignProgrammePage({
       <ProgrammeEditor
         initial={template}
         exercises={exercises}
+        templates={templates}
         owner={null}
         assignTo={{ clientId: client.id, clientName: client.name, templateId: template.id }}
       />

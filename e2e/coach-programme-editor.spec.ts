@@ -190,3 +190,20 @@ test("coach can delete a template from the editor", async ({ page }) => {
   const { data: gone } = await coachDb.from("programmes").select("id").eq("id", prog!.id);
   expect(gone).toHaveLength(0);
 });
+
+test("coach can delete a template from the programmes page", async ({ page }) => {
+  const { data: prog } = await coachDb
+    .from("programmes")
+    .insert({ name: "E2E Card Delete" })
+    .select("id")
+    .single();
+
+  await page.goto("/coach/programmes");
+  const card = page.getByTestId("programme-card").filter({ hasText: "E2E Card Delete" });
+  await card.getByRole("button", { name: "Delete" }).click();
+  await card.getByRole("button", { name: "Confirm delete" }).click();
+
+  await expect(page.getByRole("heading", { name: "E2E Card Delete" })).not.toBeVisible();
+  const { data: gone } = await coachDb.from("programmes").select("id").eq("id", prog!.id);
+  expect(gone).toHaveLength(0);
+});

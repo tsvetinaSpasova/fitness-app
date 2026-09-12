@@ -7,6 +7,7 @@ import {
   Dumbbell,
   LayoutDashboard,
   BookOpen,
+  ClipboardList,
   LogOut,
 } from "lucide-react";
 import type { User } from "@/lib/types";
@@ -17,6 +18,7 @@ const NAV = [
   { href: "/coach", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { href: "/coach/clients", label: "Clients", icon: Users },
   { href: "/coach/programmes", label: "Programmes", icon: BookOpen },
+  { href: "/coach/workouts", label: "Workouts", icon: ClipboardList },
   { href: "/coach/exercises", label: "Exercises", icon: Dumbbell },
 ];
 

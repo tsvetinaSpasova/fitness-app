@@ -71,3 +71,8 @@ export function timeOfDayGreeting(date = new Date()) {
   if (hour < 18) return "Good afternoon";
   return "Good evening";
 }
+
+/** "12" for uniform sets, "12/10/8" for pyramid-style per-set prescriptions. */
+export function repsLabel(we: { reps: number; setDetails?: { reps: number }[] }) {
+  return we.setDetails ? we.setDetails.map((d) => d.reps).join("/") : String(we.reps);
+}

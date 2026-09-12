@@ -1,12 +1,30 @@
 import { test, expect } from "@playwright/test";
-import { CLIENT } from "./credentials";
+import { CLIENT, COACH } from "./credentials";
+import { signInAs } from "./db";
 
 test.use({ storageState: CLIENT.storageState });
 
+type Page = import("@playwright/test").Page;
+
+/** Home → workout preview → "Begin workout" → the logger. */
+async function beginWorkout(page: Page, name: RegExp) {
+  await page.goto("/client");
+  await page.getByRole("link", { name }).click();
+  await page.getByRole("link", { name: /begin workout/i }).click();
+  await expect(page).toHaveURL(/\/client\/workout\/[0-9a-f-]{36}\/start$/);
+}
+
+/** Cards start collapsed; open one by name and return its locator. */
+async function openExercise(page: Page, name: string) {
+  const card = page.getByTestId("exercise-card").filter({ hasText: name });
+  await card.getByTestId("exercise-toggle").click();
+  await expect(card.getByTestId("set-btn").first()).toBeVisible();
+  return card;
+}
+
 test.describe("Client — workout logging", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/client");
-    await page.getByRole("link", { name: /Workout A — Lower Focus/ }).click();
+    await beginWorkout(page, /Workout A — Lower Focus/);
     await expect(page.getByRole("heading", { name: "Workout A — Lower Focus" })).toBeVisible();
   });
 
@@ -14,75 +32,157 @@ test.describe("Client — workout logging", () => {
     await expect(page.getByText("4 exercises")).toBeVisible();
   });
 
-  test("shows warm-up banner", async ({ page }) => {
-    await expect(page.getByText(/warm up first/i)).toBeVisible();
-  });
 
   test("lists all exercises", async ({ page }) => {
-    await expect(page.getByText("Goblet Squat")).toBeVisible();
-    await expect(page.getByText("Romanian Deadlift")).toBeVisible();
-    await expect(page.getByText("Hip Thrust")).toBeVisible();
-    await expect(page.getByText("Walking Lunges")).toBeVisible();
+    const cards = page.getByTestId("exercise-card");
+    await expect(cards).toHaveCount(4);
+    await expect(cards.filter({ hasText: "Goblet Squat" })).toBeVisible();
+    await expect(cards.filter({ hasText: "Romanian Deadlift" })).toBeVisible();
+    await expect(cards.filter({ hasText: "Hip Thrust" })).toBeVisible();
+    await expect(cards.filter({ hasText: "Walking Lunges" })).toBeVisible();
+  });
+
+  test("exercises start collapsed and open on tap", async ({ page }) => {
+    await expect(page.getByTestId("exercise-card")).toHaveCount(4);
+    await expect(page.getByTestId("set-btn")).toHaveCount(0);
+    const card = await openExercise(page, "Goblet Squat");
+    await expect(card.getByTestId("set-btn")).toHaveCount(3);
+    await card.getByTestId("exercise-toggle").click();
+    await expect(card.getByTestId("set-btn")).toHaveCount(0);
+  });
+
+  test("completed exercises sink below the ones still to do", async ({ page }) => {
+    const names = () => page.getByTestId("exercise-card").locator("p.font-semibold").allInnerTexts();
+    expect(await names()).toEqual(["Goblet Squat", "Romanian Deadlift", "Hip Thrust", "Walking Lunges"]);
+
+    await page
+      .getByTestId("exercise-card")
+      .filter({ hasText: "Goblet Squat" })
+      .getByTestId("exercise-done-btn")
+      .click();
+    expect(await names()).toEqual(["Romanian Deadlift", "Hip Thrust", "Walking Lunges", "Goblet Squat"]);
+    await expect(page.getByTestId("exercise-progress")).toHaveText("· 1 of 4 done");
+
+    // Clearing it puts it back in programme order.
+    await page
+      .getByTestId("exercise-card")
+      .filter({ hasText: "Goblet Squat" })
+      .getByTestId("exercise-done-btn")
+      .click();
+    expect(await names()).toEqual(["Goblet Squat", "Romanian Deadlift", "Hip Thrust", "Walking Lunges"]);
   });
 
   test("shows previous performance hint for logged exercise", async ({ page }) => {
     // Sarah has a seeded completed log for this workout
-    await expect(page.getByText(/last session/i).first()).toBeVisible();
+    const card = await openExercise(page, "Goblet Squat");
+    await expect(card.getByText(/last session/i)).toBeVisible();
   });
 
   test("set inputs accept weight and reps", async ({ page }) => {
-    const weightInputs = page.locator('input[type="number"]');
+    const card = await openExercise(page, "Goblet Squat");
+    const weightInputs = card.locator('input[type="number"]');
     await weightInputs.first().fill("20");
     await expect(weightInputs.first()).toHaveValue("20");
   });
 
   test("marking a set as done toggles completion state", async ({ page }) => {
-    const firstSetBtn = page.locator('[data-testid="set-btn"]').first();
+    const card = await openExercise(page, "Goblet Squat");
+    const firstSetBtn = card.getByTestId("set-btn").first();
     await firstSetBtn.click();
     await expect(firstSetBtn).toHaveText("✓");
   });
 
   test("'need an alternative?' expands alternatives list", async ({ page }) => {
-    await page.getByText(/need an alternative/i).first().click();
-    await expect(page.getByText("Leg Press")).toBeVisible();
-    await expect(page.getByText("Bulgarian Split Squat")).toBeVisible();
+    const card = await openExercise(page, "Goblet Squat");
+    await card.getByText(/need an alternative/i).click();
+    await expect(card.getByText("Leg Press")).toBeVisible();
+    await expect(card.getByText("Bulgarian Split Squat")).toBeVisible();
   });
 
-  test("complete workout is disabled until a set is done, then saves", async ({ page }) => {
+  test("finishing with exercises left asks for confirmation first", async ({ page }) => {
     const completeBtn = page.getByRole("button", { name: /complete workout/i });
-    await expect(completeBtn).toBeDisabled();
-
-    await page.locator('[data-testid="set-btn"]').first().click();
     await expect(completeBtn).toBeEnabled();
 
+    // Nothing done: the sheet explains and "Keep going" dismisses it.
     await completeBtn.click();
+    const sheet = page.getByTestId("complete-confirm");
+    await expect(sheet).toBeVisible();
+    await expect(sheet.getByText(/haven't completed all your exercises/i)).toBeVisible();
+    await expect(sheet.getByText(/nothing is marked done yet/i)).toBeVisible();
+    await sheet.getByRole("button", { name: /keep going/i }).click();
+    await expect(sheet).toHaveCount(0);
+    await expect(page).toHaveURL(/\/start$/);
+
+    // Partially done: the count is spelled out, and confirming saves.
+    await page
+      .getByTestId("exercise-card")
+      .filter({ hasText: "Goblet Squat" })
+      .getByTestId("exercise-done-btn")
+      .click();
+    await completeBtn.click();
+    await expect(sheet.getByText("1 of 4 exercises are done.")).toBeVisible();
+    await sheet.getByRole("button", { name: /yes, finish workout/i }).click();
     await expect(page).toHaveURL("/client");
     // The freshly saved workout shows up in recent logs
     await expect(page.getByRole("heading", { name: "Recent Workouts" })).toBeVisible();
     await expect(page.getByText("Workout A — Lower Focus").first()).toBeVisible();
   });
 
+  test("finishing with every exercise done saves without asking", async ({ page }) => {
+    // Done cards sink to the bottom, so the next to-do card is always first.
+    for (let i = 1; i <= 4; i++) {
+      await page.getByTestId("exercise-done-btn").first().click();
+      await expect(page.getByTestId("exercise-progress")).toHaveText(`· ${i} of 4 done`);
+    }
+
+    await page.getByRole("button", { name: /complete workout/i }).click();
+    await expect(page.getByTestId("complete-confirm")).toHaveCount(0);
+    await expect(page).toHaveURL("/client");
+  });
+
   test("back link returns to client workouts", async ({ page }) => {
     await page.getByRole("link", { name: /back/i }).click();
     await expect(page).toHaveURL("/client");
   });
+});
 
-  test("exercises browse horizontally with arrows and dots", async ({ page }) => {
-    await expect(page.getByTestId("exercise-position")).toHaveText("1 / 4");
-    await expect(page.getByTestId("exercise-dot")).toHaveCount(4);
-    await expect(page.getByRole("button", { name: "Previous exercise" })).toBeDisabled();
+// Tapping a workout on the home page opens a preview of the whole session
+// first; the logger only starts from "Begin workout".
+test.describe("Client — workout preview", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto("/client");
+    await page.getByRole("link", { name: /Workout A — Lower Focus/ }).click();
+    await expect(page).toHaveURL(/\/client\/workout\/[0-9a-f-]{36}$/);
+  });
 
-    await page.getByRole("button", { name: "Next exercise" }).click();
-    await expect(page.getByTestId("exercise-position")).toHaveText("2 / 4");
-    await expect(page.getByRole("button", { name: "Previous exercise" })).toBeEnabled();
+  test("summarises every exercise with sets × reps before starting", async ({ page }) => {
+    await expect(page.getByRole("heading", { name: "Workout A — Lower Focus" })).toBeVisible();
+    await expect(page.getByText(/4 exercises/)).toBeVisible();
+    await expect(page.getByText(/warm up first/i)).toBeVisible();
+    await expect(page.getByText("Any order works")).toBeVisible();
 
-    // Dots jump straight to an exercise; on the last one Next disables.
-    await page.getByTestId("exercise-dot").nth(3).click();
-    await expect(page.getByTestId("exercise-position")).toHaveText("4 / 4");
-    await expect(page.getByRole("button", { name: "Next exercise" })).toBeDisabled();
+    const items = page.getByTestId("exercise-overview-item");
+    await expect(items).toHaveCount(4);
+    await expect(items.nth(0)).toContainText("Goblet Squat");
+    await expect(items.nth(0)).toContainText(/3 × \d+/);
+    await expect(items.nth(0)).toContainText(/90s rest/);
+    await expect(items.nth(3)).toContainText("Walking Lunges");
 
-    await page.getByRole("button", { name: "Previous exercise" }).click();
-    await expect(page.getByTestId("exercise-position")).toHaveText("3 / 4");
+    // Nothing is loggable from the preview.
+    await expect(page.getByTestId("exercise-card")).toHaveCount(0);
+    await expect(page.getByRole("button", { name: /complete workout/i })).toHaveCount(0);
+  });
+
+  test("'Begin workout' opens the logger", async ({ page }) => {
+    await page.getByRole("link", { name: /begin workout/i }).click();
+    await expect(page).toHaveURL(/\/start$/);
+    await expect(page.getByRole("heading", { name: "Workout A — Lower Focus" })).toBeVisible();
+    await expect(page.getByTestId("exercise-card")).toHaveCount(4);
+  });
+
+  test("back link returns to client workouts", async ({ page }) => {
+    await page.getByRole("link", { name: /back/i }).click();
+    await expect(page).toHaveURL("/client");
   });
 });
 
@@ -99,8 +199,6 @@ test.describe("Client — exercise details in the logger", () => {
   let gobletId: string;
 
   test.beforeAll(async () => {
-    const { signInAs } = await import("./db");
-    const { COACH } = await import("./credentials");
     coachDb = await signInAs(COACH.email, COACH.password);
 
     const { data: rdl } = await coachDb
@@ -147,8 +245,7 @@ test.describe("Client — exercise details in the logger", () => {
   });
 
   test.beforeEach(async ({ page }) => {
-    await page.goto("/client");
-    await page.getByRole("link", { name: /Workout A — Lower Focus/ }).click();
+    await beginWorkout(page, /Workout A — Lower Focus/);
     await expect(page.getByRole("heading", { name: "Workout A — Lower Focus" })).toBeVisible();
   });
 
@@ -158,12 +255,13 @@ test.describe("Client — exercise details in the logger", () => {
   });
 
   test("shows the coach's note for an exercise", async ({ page }) => {
-    await expect(page.getByText("Coach note:")).toBeVisible();
-    await expect(page.getByText(CUE)).toBeVisible();
+    const card = await openExercise(page, "Goblet Squat");
+    await expect(card.getByText("Coach note:")).toBeVisible();
+    await expect(card.getByText(CUE)).toBeVisible();
   });
 
   test("'How to do this' reveals instructions and an embedded video", async ({ page }) => {
-    const card = page.locator("div.overflow-hidden").filter({ hasText: "Romanian Deadlift" });
+    const card = await openExercise(page, "Romanian Deadlift");
     await card.getByRole("button", { name: /how to do this/i }).click();
     await expect(card.getByText(/hinge at hips/i)).toBeVisible();
     const iframe = card.locator("iframe");
@@ -175,7 +273,7 @@ test.describe("Client — exercise details in the logger", () => {
   });
 
   test("an exercise without a video shows instructions only", async ({ page }) => {
-    const card = page.locator("div.overflow-hidden").filter({ hasText: "Hip Thrust" });
+    const card = await openExercise(page, "Hip Thrust");
     await card.getByRole("button", { name: /how to do this/i }).click();
     await expect(card.getByText(/shoulders on bench/i)).toBeVisible();
     await expect(card.locator("iframe")).toHaveCount(0);
@@ -184,15 +282,13 @@ test.describe("Client — exercise details in the logger", () => {
 
 test.describe("Client — whole-exercise completion and bodyweight exercises", () => {
   test("the header circle completes and clears every set of an exercise", async ({ page }) => {
-    await page.goto("/client");
-    await page.getByRole("link", { name: /Workout A — Lower Focus/ }).click();
-    const card = page.locator("div.overflow-hidden").filter({ hasText: "Goblet Squat" });
+    await beginWorkout(page, /Workout A — Lower Focus/);
+    const card = await openExercise(page, "Goblet Squat");
 
     await card.getByTestId("exercise-done-btn").click();
     const setBtns = card.getByTestId("set-btn");
     const count = await setBtns.count();
     for (let i = 0; i < count; i++) await expect(setBtns.nth(i)).toHaveText("✓");
-    await expect(page.getByRole("button", { name: /complete workout/i })).toBeEnabled();
 
     await card.getByTestId("exercise-done-btn").click();
     for (let i = 0; i < count; i++) await expect(setBtns.nth(i)).not.toHaveText("✓");
@@ -200,25 +296,25 @@ test.describe("Client — whole-exercise completion and bodyweight exercises", (
 
   test("a bodyweight exercise hides all weight fields", async ({ page }) => {
     // Pull Up is seeded with requires_weight = false; it lives in Workout B.
-    await page.goto("/client");
-    await page.getByRole("link", { name: /Workout B — Upper Focus/ }).click();
+    await beginWorkout(page, /Workout B — Upper Focus/);
 
-    const pullUp = page.locator("div.overflow-hidden").filter({ hasText: "Pull Up" });
+    const pullUp = await openExercise(page, "Pull Up");
     await expect(pullUp.getByLabel(/reps/i)).toHaveCount(3);
     await expect(pullUp.getByLabel(/weight/i)).toHaveCount(0);
 
     // A weighted exercise in the same workout still has its weight inputs.
-    const bench = page.locator("div.overflow-hidden").filter({ hasText: "Dumbbell Bench Press" });
+    const bench = await openExercise(page, "Dumbbell Bench Press");
     await expect(bench.getByLabel(/weight/i).first()).toBeVisible();
   });
 
   test("logging a bodyweight exercise records reps-only history", async ({ page }) => {
-    await page.goto("/client");
-    await page.getByRole("link", { name: /Workout B — Upper Focus/ }).click();
+    await beginWorkout(page, /Workout B — Upper Focus/);
 
-    const pullUp = page.locator("div.overflow-hidden").filter({ hasText: "Pull Up" });
+    const pullUp = page.getByTestId("exercise-card").filter({ hasText: "Pull Up" });
     await pullUp.getByTestId("exercise-done-btn").click();
     await page.getByRole("button", { name: /complete workout/i }).click();
+    // Only one exercise is done, so finishing asks first.
+    await page.getByRole("button", { name: /yes, finish workout/i }).click();
     await expect(page).toHaveURL("/client");
 
     // The home history shows reps-only chips (no "kg ×") for these sets.

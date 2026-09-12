@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { ProgrammeEditor } from "@/components/coach/programme-editor";
-import { getClient, getExercises, getProgramme } from "@/lib/data";
+import { getClient, getExercises, getProgramme, getWorkoutTemplates } from "@/lib/data";
 
 export default async function EditProgrammePage({
   params,
@@ -8,7 +8,11 @@ export default async function EditProgrammePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [programme, exercises] = await Promise.all([getProgramme(id), getExercises()]);
+  const [programme, exercises, templates] = await Promise.all([
+    getProgramme(id),
+    getExercises(),
+    getWorkoutTemplates(),
+  ]);
   if (!programme) notFound();
 
   // A client's personal copy links back to that client, not the library.
@@ -19,6 +23,7 @@ export default async function EditProgrammePage({
       <ProgrammeEditor
         initial={programme}
         exercises={exercises}
+        templates={templates}
         owner={owner ? { id: owner.id, name: owner.name } : null}
       />
     </div>

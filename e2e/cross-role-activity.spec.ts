@@ -65,6 +65,10 @@ test("a client's logged workout appears on the coach's dashboard and client page
   await page.locator('a[href^="/client/workout/"]').first().click();
   await expect(page).toHaveURL(/\/client\/workout\/[0-9a-f-]{36}/);
   const workoutName = (await page.locator("h1").innerText()).trim();
+  // The preview lists the session; "Begin workout" opens the logger, where
+  // cards start collapsed.
+  await page.getByRole("link", { name: /begin workout/i }).click();
+  await page.getByTestId("exercise-toggle").first().click();
   const workoutNamePattern = new RegExp(workoutName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
 
   // Log one set of the first exercise with a distinctive weight; remember
@@ -73,6 +77,8 @@ test("a client's logged workout appears on the coach's dashboard and client page
   const reps = await page.locator('input[type="number"]').nth(1).inputValue();
   await page.locator('[data-testid="set-btn"]').first().click();
   await page.getByRole("button", { name: /complete workout/i }).click();
+  // Finishing with exercises still to do asks for confirmation.
+  await page.getByRole("button", { name: /yes, finish workout/i }).click();
   await expect(page).toHaveURL("/client");
 
   const coach = await openCoachPage(browser);
@@ -91,6 +97,8 @@ test("a client's logged workout appears on the coach's dashboard and client page
   // FR-5.2: reopening the workout now shows the logged set as the
   // "last session" reference, and pre-fills the weight input from it.
   await page.getByRole("link", { name: workoutNamePattern }).click();
+  await page.getByRole("link", { name: /begin workout/i }).click();
+  await page.getByTestId("exercise-toggle").first().click();
   await expect(page.getByText(new RegExp(`last session: 123\\.5kg × ${reps}`, "i"))).toBeVisible();
   await expect(page.locator('input[type="number"]').first()).toHaveValue("123.5");
 });

@@ -65,3 +65,72 @@ test("coach can edit an exercise", async ({ page }) => {
   await expect(page.getByText("E2E Kneeling Cable Crunch", { exact: true })).toBeVisible();
   await expect(page.getByText("E2E Cable Crunch", { exact: true })).not.toBeVisible();
 });
+
+test("an exercise used in workouts can't be deleted", async ({ page }) => {
+  await page.goto("/coach/exercises");
+  // Goblet Squat is prescribed in seeded workouts; match the title, not the
+  // alternatives chips that also mention it.
+  const row = page
+    .getByTestId("exercise-row")
+    .filter({ has: page.locator("p.font-semibold", { hasText: "Goblet Squat" }) });
+  await expect(row.getByRole("button", { name: "Delete" })).toBeDisabled();
+  await expect(row.getByText(/used in \d+ workouts?, so it can't be deleted/i)).toBeVisible();
+});
+
+test("coach can delete an unused exercise", async ({ page }) => {
+  await page.goto("/coach/exercises");
+  await page.getByRole("button", { name: "E2E-Core", exact: true }).click();
+  const row = page.getByTestId("exercise-row").filter({ hasText: "E2E Kneeling Cable Crunch" });
+  await row.getByRole("button", { name: "Delete" }).click();
+  await row.getByRole("button", { name: "Confirm delete" }).click();
+
+  await expect(page.getByText("E2E Kneeling Cable Crunch", { exact: true })).not.toBeVisible();
+  const { data } = await coachDb.from("exercises").select("id").eq("name", "E2E Kneeling Cable Crunch");
+  expect(data).toHaveLength(0);
+});
+
+test("deleting a logged exercise keeps the client's history readable", async ({ page }) => {
+  // A throwaway exercise with a log against it: the log survives the delete
+  // and still shows the exercise's name (snapshotted on exercise_logs).
+  const { data: ex } = await coachDb
+    .from("exercises")
+    .insert({ name: "E2E Logged Once", muscle_group: "E2E-Core" })
+    .select("id")
+    .single();
+  const { data: sarah } = await coachDb
+    .from("profiles")
+    .select("id")
+    .eq("email", (await import("./credentials")).CLIENT.email)
+    .single();
+  const { data: log } = await coachDb
+    .from("workout_logs")
+    .insert({
+      client_id: sarah!.id,
+      workout_name: "E2E Log",
+      programme_name: "E2E",
+      status: "completed",
+    })
+    .select("id")
+    .single();
+  const { data: exLog } = await coachDb
+    .from("exercise_logs")
+    .insert({ workout_log_id: log!.id, exercise_id: ex!.id, exercise_name: "E2E Logged Once" })
+    .select("id")
+    .single();
+  await coachDb.from("set_logs").insert({ exercise_log_id: exLog!.id, set_number: 1, reps: 5, weight_kg: 10 });
+
+  await page.goto("/coach/exercises");
+  await page.getByRole("button", { name: "E2E-Core", exact: true }).click();
+  const row = page.getByTestId("exercise-row").filter({ hasText: "E2E Logged Once" });
+  await row.getByRole("button", { name: "Delete" }).click();
+  await row.getByRole("button", { name: "Confirm delete" }).click();
+  await expect(page.getByText("E2E Logged Once", { exact: true })).not.toBeVisible();
+
+  const { data: after } = await coachDb
+    .from("exercise_logs")
+    .select("exercise_id, exercise_name")
+    .eq("id", exLog!.id)
+    .single();
+  expect(after).toEqual({ exercise_id: null, exercise_name: "E2E Logged Once" });
+  await coachDb.from("workout_logs").delete().eq("id", log!.id);
+});

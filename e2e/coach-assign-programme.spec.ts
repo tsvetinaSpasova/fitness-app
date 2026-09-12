@@ -46,9 +46,9 @@ test("changing a programme warns, then assigns a customised copy via the editor"
   await page.goto(`/coach/clients/${jamesId}`);
   await expect(page.getByRole("heading", { name: ASSIGN_CLIENT.name })).toBeVisible();
 
-  // James already has a programme, so the button reads "Change" and opening
+  // James already has a programme, so the button reads "Assign a new programme" and opening
   // it shows the replacement warning.
-  await page.getByRole("button", { name: "Change" }).click();
+  await page.getByRole("button", { name: "Assign a new programme" }).click();
   await expect(page.getByText(/customisations to it will no longer apply/i)).toBeVisible();
   await page.getByRole("link", { name: "Full Body Phase 2", exact: true }).click();
 
@@ -127,13 +127,16 @@ test("changing a programme warns, then assigns a customised copy via the editor"
   // The coach-configured target weight is the client's default in the logger
   // (James has no previous session, but target would win regardless).
   await clientPage.getByText("Workout A — Lower Power").first().click();
+  // Preview first, then the logger, where cards start collapsed.
+  await clientPage.getByRole("link", { name: /begin workout/i }).click();
+  await clientPage.getByTestId("exercise-toggle").first().click();
   await expect(clientPage.getByLabel("Set 1 weight", { exact: true }).first()).toHaveValue("22.5");
   await clientContext.close();
 });
 
 test("assign dropdown lists the template library as links", async ({ page }) => {
   await page.goto(`/coach/clients/${jamesId}`);
-  await page.getByRole("button", { name: "Change" }).click();
+  await page.getByRole("button", { name: "Assign a new programme" }).click();
   await expect(page.getByRole("link", { name: "Full Body Phase 1", exact: true })).toBeVisible();
   await expect(page.getByRole("link", { name: "Full Body Phase 2", exact: true })).toBeVisible();
 });

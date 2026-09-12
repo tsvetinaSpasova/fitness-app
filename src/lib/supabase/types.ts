@@ -80,16 +80,20 @@ export type Database = {
       workouts: {
         Row: {
           id: string;
-          programme_id: string;
+          /** Null for a common (pre-made) workout in the coach's library. */
+          programme_id: string | null;
           name: string;
           order_num: number;
+          /** The common workout this programme workout was picked from. */
+          source_workout_id: string | null;
           created_at: string;
         };
         Insert: {
           id?: string;
-          programme_id: string;
+          programme_id?: string | null;
           name: string;
           order_num?: number;
+          source_workout_id?: string | null;
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["workouts"]["Insert"]>;
@@ -149,12 +153,16 @@ export type Database = {
         Row: {
           id: string;
           workout_log_id: string;
-          exercise_id: string;
+          /** Null once the exercise has been deleted from the library. */
+          exercise_id: string | null;
+          /** Snapshot of the name at logging time. */
+          exercise_name: string | null;
         };
         Insert: {
           id?: string;
           workout_log_id: string;
-          exercise_id: string;
+          exercise_id?: string | null;
+          exercise_name?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["exercise_logs"]["Insert"]>;
         Relationships: [];

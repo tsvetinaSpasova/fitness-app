@@ -81,6 +81,7 @@ function mapWorkout(row: WorkoutNested): Workout {
     id: row.id,
     name: row.name,
     order: row.order_num,
+    sourceWorkoutId: row.source_workout_id ?? undefined,
     exercises: [...row.workout_exercises]
       .sort((a, b) => a.position - b.position)
       .map((we) => ({
@@ -119,8 +120,9 @@ function mapWorkoutLog(row: WorkoutLogNested): WorkoutLog {
     status: row.status,
     loggedAt: row.logged_at,
     exercises: row.exercise_logs.map((el) => ({
-      exerciseId: el.exercise_id,
-      exerciseName: el.exercises?.name ?? "Exercise",
+      exerciseId: el.exercise_id ?? "",
+      // The log's own snapshot wins: it survives the exercise being deleted.
+      exerciseName: el.exercise_name ?? el.exercises?.name ?? "Exercise",
       sets: [...el.set_logs]
         .sort((a, b) => a.set_number - b.set_number)
         .map((s) => ({
@@ -240,6 +242,37 @@ export async function getTemplateAssignmentCounts(): Promise<Map<string, number>
       );
     }
   }
+  return counts;
+}
+
+/** Common (pre-made) workouts: the coach's library, rows with no programme. */
+export async function getWorkoutTemplates(): Promise<Workout[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("workouts")
+    .select("*, workout_exercises(*, exercises(*))")
+    .is("programme_id", null)
+    .order("name");
+  return ((data ?? []) as unknown as WorkoutNested[]).map(mapWorkout);
+}
+
+export async function getWorkoutTemplate(id: string): Promise<Workout | null> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("workouts")
+    .select("*, workout_exercises(*, exercises(*))")
+    .is("programme_id", null)
+    .eq("id", id)
+    .maybeSingle();
+  return data ? mapWorkout(data as unknown as WorkoutNested) : null;
+}
+
+/** exerciseId -> number of workouts (of any kind) prescribing it. */
+export async function getExerciseUsageCounts(): Promise<Map<string, number>> {
+  const supabase = await createClient();
+  const { data } = await supabase.from("workout_exercises").select("exercise_id");
+  const counts = new Map<string, number>();
+  for (const row of data ?? []) counts.set(row.exercise_id, (counts.get(row.exercise_id) ?? 0) + 1);
   return counts;
 }
 

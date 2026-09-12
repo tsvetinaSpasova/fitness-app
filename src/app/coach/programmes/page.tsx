@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { DeleteProgramme } from "@/components/coach/delete-programme";
 import { DuplicateProgramme } from "@/components/coach/duplicate-programme";
 import { getProgrammeTemplates, getTemplateAssignmentCounts } from "@/lib/data";
 import { formatDate } from "@/lib/utils";
@@ -34,7 +35,11 @@ export default async function ProgrammesPage() {
           const assignedCount = assignmentCounts.get(programme.id) ?? 0;
 
           return (
-            <Card key={programme.id} className="hover:shadow-md transition-shadow">
+            <Card
+              key={programme.id}
+              data-testid="programme-card"
+              className="hover:shadow-md transition-shadow"
+            >
               <CardHeader className="flex flex-row items-start justify-between pb-3">
                 <div>
                   <CardTitle className="text-base">{programme.name}</CardTitle>
@@ -80,6 +85,7 @@ export default async function ProgrammesPage() {
                       <Pencil size={13} /> Edit
                     </Link>
                     <DuplicateProgramme programme={programme} />
+                    <DeleteProgramme programmeId={programme.id} />
                   </div>
                 </div>
               </CardContent>

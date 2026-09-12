@@ -51,6 +51,8 @@ export interface Workout {
   name: string;
   order: number;
   exercises: WorkoutExercise[];
+  /** Set when this programme workout was picked from a common workout. */
+  sourceWorkoutId?: string;
 }
 
 export interface Programme {

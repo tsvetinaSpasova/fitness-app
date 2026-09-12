@@ -1,16 +1,14 @@
 "use client";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import type { SetLog, Workout, WorkoutExercise } from "@/lib/types";
-import { cn, youTubeEmbedUrl } from "@/lib/utils";
+import { cn, repsLabel, youTubeEmbedUrl } from "@/lib/utils";
 import {
   ArrowLeft,
   ChevronDown,
-  ChevronLeft,
-  ChevronRight,
   ChevronUp,
   Info,
   CheckCircle2,
@@ -37,7 +35,7 @@ function ExerciseCard({
   onToggleAll: () => void;
 }) {
   const { exercise, sets, reps, restSeconds, notes, setDetails } = workoutExercise;
-  const [expanded, setExpanded] = useState(true);
+  const [expanded, setExpanded] = useState(false);
   const [showAlts, setShowAlts] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
 
@@ -45,11 +43,15 @@ function ExerciseCard({
   const embedUrl = exercise.videoUrl ? youTubeEmbedUrl(exercise.videoUrl) : null;
   const hasInfo = Boolean(exercise.instructions || exercise.videoUrl);
   const weighted = exercise.requiresWeight;
-  // Pyramid schemes list every set's reps: "3 sets × 12/10/8 reps".
-  const repsLabel = setDetails ? setDetails.map((d) => d.reps).join("/") : String(reps);
 
   return (
-    <div className={cn("bg-white rounded-xl border shadow-sm overflow-hidden", allDone ? "border-emerald-200" : "border-slate-200")}>
+    <div
+      data-testid="exercise-card"
+      className={cn(
+        "bg-white rounded-xl border shadow-sm overflow-hidden",
+        allDone ? "border-emerald-200" : "border-slate-200"
+      )}
+    >
       {/* Header: the circle completes the WHOLE exercise; the rest expands. */}
       <div className="w-full flex items-center gap-3 px-4 py-3.5">
         <button
@@ -65,13 +67,15 @@ function ExerciseCard({
           )}
         </button>
         <button
+          data-testid="exercise-toggle"
+          aria-expanded={expanded}
           onClick={() => setExpanded((v) => !v)}
           className="flex-1 flex items-center justify-between text-left"
         >
           <div>
             <p className="font-semibold text-slate-900 text-sm">{exercise.name}</p>
             <p className="text-xs text-slate-500">
-              {sets} sets × {repsLabel} reps · {exercise.muscleGroup}
+              {sets} sets × {repsLabel(workoutExercise)} reps · {exercise.muscleGroup}
               {restSeconds != null && ` · ${restSeconds}s rest`}
             </p>
           </div>
@@ -248,6 +252,7 @@ export function WorkoutLogger({
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [confirming, setConfirming] = useState(false);
   const [states, setStates] = useState<SetState[][]>(() =>
     workout.exercises.map((we) => {
       const prev = previousByExerciseId[we.exerciseId];
@@ -285,28 +290,24 @@ export function WorkoutLogger({
     );
   }
 
-  const anyDone = states.some((sets) => sets.some((s) => s.done));
-
-  // Horizontal exercise carousel: one exercise per screen, swipe (scroll
-  // snap) or arrows/dots to move between them.
-  const scrollerRef = useRef<HTMLDivElement>(null);
-  const [current, setCurrent] = useState(0);
   const exerciseCount = workout.exercises.length;
+  const isDone = (i: number) => states[i].length > 0 && states[i].every((s) => s.done);
+  const doneCount = workout.exercises.filter((_, i) => isDone(i)).length;
 
-  function scrollToExercise(idx: number) {
-    const el = scrollerRef.current;
-    if (!el || exerciseCount === 0) return;
-    const clamped = Math.max(0, Math.min(idx, exerciseCount - 1));
-    el.scrollTo({ left: (el.scrollWidth / exerciseCount) * clamped, behavior: "smooth" });
-  }
+  // Still-to-do exercises first (in programme order), completed ones sink to
+  // the bottom — whatever is left to do is always at the top of the screen.
+  const order = workout.exercises
+    .map((_, i) => i)
+    .sort((a, b) => Number(isDone(a)) - Number(isDone(b)) || a - b);
 
-  function onCarouselScroll(el: HTMLDivElement) {
-    if (exerciseCount === 0) return;
-    const idx = Math.round(el.scrollLeft / (el.scrollWidth / exerciseCount));
-    setCurrent(Math.max(0, Math.min(idx, exerciseCount - 1)));
+  /** Finish straight away when everything is done; otherwise ask first. */
+  function onCompleteClick() {
+    if (doneCount === exerciseCount) void complete();
+    else setConfirming(true);
   }
 
   async function complete() {
+    setConfirming(false);
     setSaving(true);
     setError(null);
     const supabase = createClient();
@@ -334,7 +335,7 @@ export function WorkoutLogger({
 
       const { data: exLog, error: exError } = await supabase
         .from("exercise_logs")
-        .insert({ workout_log_id: log.id, exercise_id: we.exerciseId })
+        .insert({ workout_log_id: log.id, exercise_id: we.exerciseId, exercise_name: we.exercise.name })
         .select("id")
         .single();
       if (exError || !exLog) {
@@ -374,95 +375,73 @@ export function WorkoutLogger({
           <ArrowLeft size={15} /> Back
         </Link>
         <h1 className="text-lg font-bold text-slate-900">{workout.name}</h1>
-        <p className="text-sm text-slate-500">{workout.exercises.length} exercises</p>
+        <p className="text-sm text-slate-500">
+          {exerciseCount} exercises
+          {doneCount > 0 && (
+            <span data-testid="exercise-progress"> · {doneCount} of {exerciseCount} done</span>
+          )}
+        </p>
       </div>
 
       <div className="px-4 py-4 space-y-3">
-        {/* Warm-up note */}
-        <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
-          <p className="text-sm font-semibold text-amber-800">Warm up first 🔥</p>
-          <p className="text-xs text-amber-700 mt-0.5">
-            5 min light cardio + general movement to feel how the body responds.
-          </p>
-        </div>
-
-        {/* Carousel navigation: arrows, per-exercise dots, position counter */}
-        <div className="flex items-center justify-between gap-2">
-          <button
-            aria-label="Previous exercise"
-            disabled={current === 0}
-            onClick={() => scrollToExercise(current - 1)}
-            className="p-1.5 rounded-full bg-white border border-slate-200 text-slate-500 hover:text-slate-800 disabled:opacity-30 transition-colors"
-          >
-            <ChevronLeft size={16} />
-          </button>
-          <div className="flex items-center gap-1.5">
-            {workout.exercises.map((we, i) => {
-              const done = states[i].every((s) => s.done);
-              return (
-                <button
-                  key={we.exerciseId}
-                  data-testid="exercise-dot"
-                  aria-label={`Go to ${we.exercise.name}`}
-                  onClick={() => scrollToExercise(i)}
-                  className={cn(
-                    "h-2 rounded-full transition-all",
-                    i === current ? "w-5" : "w-2",
-                    done ? "bg-emerald-500" : i === current ? "bg-blue-600" : "bg-slate-300"
-                  )}
-                />
-              );
-            })}
-          </div>
-          <div className="flex items-center gap-2">
-            <span data-testid="exercise-position" className="text-xs font-medium text-slate-500">
-              {Math.min(current + 1, exerciseCount)} / {exerciseCount}
-            </span>
-            <button
-              aria-label="Next exercise"
-              disabled={current >= exerciseCount - 1}
-              onClick={() => scrollToExercise(current + 1)}
-              className="p-1.5 rounded-full bg-white border border-slate-200 text-slate-500 hover:text-slate-800 disabled:opacity-30 transition-colors"
-            >
-              <ChevronRight size={16} />
-            </button>
-          </div>
-        </div>
-
-        {/* One exercise per screen; swipe or use the arrows/dots above */}
-        <div
-          ref={scrollerRef}
-          data-testid="exercise-carousel"
-          onScroll={(e) => onCarouselScroll(e.currentTarget)}
-          style={{ scrollbarWidth: "none" }}
-          className="flex overflow-x-auto snap-x snap-mandatory gap-3 items-start [&::-webkit-scrollbar]:hidden"
-        >
-          {workout.exercises.map((we, i) => (
-            <div key={we.exerciseId} className="w-full shrink-0 snap-center">
-              <ExerciseCard
-                workoutExercise={we}
-                previousSets={previousByExerciseId[we.exerciseId]}
-                setStates={states[i]}
-                onUpdateSet={(setIdx, field, val) => updateSet(i, setIdx, field, val)}
-                onToggleAll={() => toggleAllSets(i)}
-              />
-            </div>
-          ))}
-        </div>
+        {/* Collapsed cards, to-do first; tap a name to open its sets */}
+        {order.map((i) => {
+          const we = workout.exercises[i];
+          return (
+            <ExerciseCard
+              key={we.exerciseId}
+              workoutExercise={we}
+              previousSets={previousByExerciseId[we.exerciseId]}
+              setStates={states[i]}
+              onUpdateSet={(setIdx, field, val) => updateSet(i, setIdx, field, val)}
+              onToggleAll={() => toggleAllSets(i)}
+            />
+          );
+        })}
 
         {/* Complete button */}
         <div className="pt-2 pb-4">
           {error && <p className="text-sm text-red-600 mb-2">{error}</p>}
-          <Button className="w-full" size="lg" onClick={complete} disabled={saving || !anyDone}>
+          <Button className="w-full" size="lg" onClick={onCompleteClick} disabled={saving}>
             <CheckCircle2 size={18} /> {saving ? "Saving…" : "Complete Workout"}
           </Button>
-          {!anyDone && (
-            <p className="text-xs text-slate-400 text-center mt-2">
-              Mark at least one set as done to complete the workout.
-            </p>
-          )}
         </div>
       </div>
+
+      {/* Finishing early: confirm before saving a partial (or empty) session */}
+      {confirming && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="complete-confirm-title"
+          data-testid="complete-confirm"
+          className="fixed inset-0 z-20 flex items-end sm:items-center justify-center bg-slate-900/40 px-4 pb-6 sm:pb-0"
+          onClick={() => setConfirming(false)}
+        >
+          <div
+            className="w-full max-w-sm bg-white rounded-2xl shadow-xl p-5"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p id="complete-confirm-title" className="text-base font-bold text-slate-900">
+              You haven&apos;t completed all your exercises
+            </p>
+            <p className="text-sm text-slate-500 mt-1">
+              {doneCount === 0
+                ? "Nothing is marked done yet."
+                : `${doneCount} of ${exerciseCount} exercises are done.`}{" "}
+              Are you sure you want to finish the workout?
+            </p>
+            <div className="mt-4 flex flex-col gap-2">
+              <Button size="lg" onClick={complete}>
+                Yes, finish workout
+              </Button>
+              <Button size="lg" variant="secondary" onClick={() => setConfirming(false)}>
+                Keep going
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import type { Exercise } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { Plus, Play } from "lucide-react";
+import { Plus, Play, Trash2 } from "lucide-react";
 
 interface FormState {
   id?: string;
@@ -137,10 +137,34 @@ function ExerciseForm({
   );
 }
 
-export function ExerciseLibrary({ exercises }: { exercises: Exercise[] }) {
+export function ExerciseLibrary({
+  exercises,
+  usage,
+}: {
+  exercises: Exercise[];
+  /** exerciseId -> number of workouts (templates, programmes, client copies) using it. */
+  usage: Record<string, number>;
+}) {
   const router = useRouter();
   const [filter, setFilter] = useState<string | null>(null);
   const [editing, setEditing] = useState<FormState | null>(null);
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  async function remove(id: string) {
+    setDeleting(true);
+    setDeleteError(null);
+    const { error } = await createClient().from("exercises").delete().eq("id", id);
+    if (error) {
+      setDeleteError(error.message);
+      setDeleting(false);
+      return;
+    }
+    setConfirmingId(null);
+    setDeleting(false);
+    router.refresh();
+  }
 
   const muscleGroups = [...new Set(exercises.map((e) => e.muscleGroup))];
   const visible = filter
@@ -200,8 +224,10 @@ export function ExerciseLibrary({ exercises }: { exercises: Exercise[] }) {
       </div>
 
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm divide-y divide-slate-100">
-        {visible.map((exercise) => (
-          <div key={exercise.id} className="px-5 py-4">
+        {visible.map((exercise) => {
+          const usedIn = usage[exercise.id] ?? 0;
+          return (
+          <div key={exercise.id} data-testid="exercise-row" className="px-5 py-4">
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
@@ -252,10 +278,50 @@ export function ExerciseLibrary({ exercises }: { exercises: Exercise[] }) {
                 >
                   Edit
                 </Button>
+                {confirmingId === exercise.id ? (
+                  <>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => remove(exercise.id)}
+                      disabled={deleting}
+                    >
+                      <Trash2 size={13} className="text-red-500" /> Confirm delete
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => setConfirmingId(null)}>
+                      Cancel
+                    </Button>
+                  </>
+                ) : (
+                  // An exercise still in a workout can't go (the DB refuses);
+                  // say where it's used instead of offering a failing delete.
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    disabled={usedIn > 0}
+                    title={
+                      usedIn > 0
+                        ? `Used in ${usedIn} workout${usedIn !== 1 ? "s" : ""} — remove it from them first.`
+                        : "Delete this exercise"
+                    }
+                    onClick={() => setConfirmingId(exercise.id)}
+                  >
+                    <Trash2 size={13} className="text-red-500" /> Delete
+                  </Button>
+                )}
               </div>
             </div>
+            {usedIn > 0 && (
+              <p className="text-xs text-slate-400 mt-1.5">
+                Used in {usedIn} workout{usedIn !== 1 ? "s" : ""}, so it can&apos;t be deleted.
+              </p>
+            )}
+            {confirmingId === exercise.id && deleteError && (
+              <p className="text-xs text-red-600 mt-1.5">{deleteError}</p>
+            )}
           </div>
-        ))}
+          );
+        })}
         {visible.length === 0 && (
           <p className="text-sm text-slate-500 px-5 py-6 text-center">
             No exercises yet. Add your first exercise to build the library.

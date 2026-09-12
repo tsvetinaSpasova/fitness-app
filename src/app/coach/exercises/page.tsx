@@ -1,12 +1,12 @@
 import { ExerciseLibrary } from "@/components/coach/exercise-library";
-import { getExercises } from "@/lib/data";
+import { getExerciseUsageCounts, getExercises } from "@/lib/data";
 
 export default async function ExercisesPage() {
-  const exercises = await getExercises();
+  const [exercises, usage] = await Promise.all([getExercises(), getExerciseUsageCounts()]);
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
-      <ExerciseLibrary exercises={exercises} />
+      <ExerciseLibrary exercises={exercises} usage={Object.fromEntries(usage)} />
     </div>
   );
 }
