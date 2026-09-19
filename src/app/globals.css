@@ -24,3 +24,17 @@ body {
   color: #0f172a;
   -webkit-font-smoothing: antialiased;
 }
+
+/*
+ * iOS Safari auto-zooms the page when a focused form control has a font size
+ * under 16px, and the zoom sticks after client-side navigation (e.g. after
+ * signing in). Force 16px on phones; Tailwind's text-sm still applies on wider
+ * screens. Utility classes on the element are overridden on purpose.
+ */
+@media (max-width: 767px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
