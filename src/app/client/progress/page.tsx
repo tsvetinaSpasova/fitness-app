@@ -1,9 +1,11 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MeasurementForm } from "@/components/client/measurement-form";
 import { getCurrentClient, getMeasurements, getWorkoutLogs } from "@/lib/data";
+import { HOW_TO_MEASURE_PATH } from "@/lib/measurement-guide";
 import { formatDate } from "@/lib/utils";
-import { Scale, Activity } from "lucide-react";
+import { Scale, Activity, HelpCircle } from "lucide-react";
 
 function delta(curr: number, prev: number) {
   const d = curr - prev;
@@ -36,7 +38,15 @@ export default async function ProgressPage() {
             <CardTitle className="flex items-center gap-2">
               <Scale size={16} className="text-blue-600" /> Measurements
             </CardTitle>
-            <MeasurementForm clientId={client.id} />
+            <div className="flex items-center gap-2">
+              <Link
+                href={HOW_TO_MEASURE_PATH}
+                className="inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:underline"
+              >
+                <HelpCircle size={13} /> How to measure
+              </Link>
+              <MeasurementForm clientId={client.id} />
+            </div>
           </CardHeader>
           {latest ? (
             <CardContent className="pt-0">
@@ -95,6 +105,13 @@ export default async function ProgressPage() {
           ) : (
             <CardContent>
               <p className="text-sm text-slate-500">No measurements logged yet.</p>
+              <p className="text-xs text-slate-400 mt-1">
+                First time?{" "}
+                <Link href={HOW_TO_MEASURE_PATH} className="text-blue-600 hover:underline">
+                  See how to take each measurement
+                </Link>{" "}
+                so your numbers are comparable week to week.
+              </p>
             </CardContent>
           )}
         </Card>

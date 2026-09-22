@@ -37,8 +37,10 @@ test.describe("Product gaps — client flows", () => {
     // exercises. History should be matched per exercise, not per workout row.
   });
 
-  test.fixme("measurement guide videos (FR-6.2)", async () => {
-    // No demonstration video/guide on how to take each measurement.
+  test.fixme("measurement demo videos (FR-6.2)", async () => {
+    // The written guide at /client/progress/how-to-measure is covered by
+    // client-measurement-guide.spec.ts. Each guide has a videoUrl slot
+    // (src/lib/measurement-guide.ts) but no demo videos are recorded yet.
   });
 
   test.fixme("per-exercise strength progress over time (FR-6.5)", async () => {
