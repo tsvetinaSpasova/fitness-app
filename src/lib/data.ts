@@ -1,6 +1,7 @@
 // Server-side data access: maps snake_case Supabase rows to the camelCase
 // domain types in ./types. All queries run under the caller's RLS context.
 import { createClient } from "@/lib/supabase/server";
+import { copy } from "@/lib/copy";
 import type { Database } from "@/lib/supabase/types";
 import type {
   CheckIn,
@@ -122,7 +123,7 @@ function mapWorkoutLog(row: WorkoutLogNested): WorkoutLog {
     exercises: row.exercise_logs.map((el) => ({
       exerciseId: el.exercise_id ?? "",
       // The log's own snapshot wins: it survives the exercise being deleted.
-      exerciseName: el.exercise_name ?? el.exercises?.name ?? "Exercise",
+      exerciseName: el.exercise_name ?? el.exercises?.name ?? copy.ui.deletedExerciseName,
       sets: [...el.set_logs]
         .sort((a, b) => a.set_number - b.set_number)
         .map((s) => ({

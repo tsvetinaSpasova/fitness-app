@@ -1,8 +1,10 @@
 import { ClientList } from "@/components/coach/client-list";
 import { getClients } from "@/lib/data";
 import { createClient } from "@/lib/supabase/server";
+import { copy, fill } from "@/lib/copy";
 
 export default async function ClientsPage() {
+  const t = copy.coach.clients;
   const clients = await getClients();
 
   const assignedIds = clients
@@ -21,9 +23,11 @@ export default async function ClientsPage() {
   return (
     <div className="p-6 max-w-4xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-900">Clients</h1>
+        <h1 className="text-2xl font-bold text-slate-900">{t.title}</h1>
         <p className="text-slate-500 text-sm mt-0.5">
-          {clients.length} active client{clients.length !== 1 ? "s" : ""}
+          {fill(clients.length === 1 ? t.activeClientCountOne : t.activeClientCountOther, {
+            count: clients.length,
+          })}
         </p>
       </div>
 

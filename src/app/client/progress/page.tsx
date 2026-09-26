@@ -6,6 +6,10 @@ import { getCurrentClient, getMeasurements, getWorkoutLogs } from "@/lib/data";
 import { HOW_TO_MEASURE_PATH } from "@/lib/measurement-guide";
 import { formatDate } from "@/lib/utils";
 import { Scale, Activity, HelpCircle } from "lucide-react";
+import { copy, fill } from "@/lib/copy";
+
+const t = copy.client.progress;
+const labels = copy.client.measurementLabels;
 
 function delta(curr: number, prev: number) {
   const d = curr - prev;
@@ -27,8 +31,8 @@ export default async function ProgressPage() {
     <div className="min-h-screen bg-slate-50">
       {/* Header */}
       <div className="bg-white px-5 pt-12 pb-5 border-b border-slate-100">
-        <h1 className="text-xl font-bold text-slate-900">Progress</h1>
-        <p className="text-slate-500 text-sm mt-0.5">Track your journey</p>
+        <h1 className="text-xl font-bold text-slate-900">{t.title}</h1>
+        <p className="text-slate-500 text-sm mt-0.5">{t.subtitle}</p>
       </div>
 
       <div className="px-4 py-5 space-y-5">
@@ -36,14 +40,14 @@ export default async function ProgressPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between relative">
             <CardTitle className="flex items-center gap-2">
-              <Scale size={16} className="text-blue-600" /> Measurements
+              <Scale size={16} className="text-blue-600" /> {t.measurementsTitle}
             </CardTitle>
             <div className="flex items-center gap-2">
               <Link
                 href={HOW_TO_MEASURE_PATH}
                 className="inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:underline"
               >
-                <HelpCircle size={13} /> How to measure
+                <HelpCircle size={13} /> {t.howToMeasure}
               </Link>
               <MeasurementForm clientId={client.id} />
             </div>
@@ -51,16 +55,16 @@ export default async function ProgressPage() {
           {latest ? (
             <CardContent className="pt-0">
               <p className="text-xs text-slate-400 mb-3">
-                Latest — {formatDate(latest.date)}
+                {fill(t.latest, { date: formatDate(latest.date) })}
               </p>
               <div className="grid grid-cols-2 gap-3">
                 {[
-                  { label: "Weight", curr: latest.weightKg, prevVal: prev?.weightKg, unit: "kg" },
-                  { label: "Waist", curr: latest.waistCm, prevVal: prev?.waistCm, unit: "cm" },
-                  { label: "Hips", curr: latest.hipsCm, prevVal: prev?.hipsCm, unit: "cm" },
-                  { label: "Chest", curr: latest.chestCm, prevVal: prev?.chestCm, unit: "cm" },
-                  { label: "Arms", curr: latest.armsCm, prevVal: prev?.armsCm, unit: "cm" },
-                  { label: "Legs", curr: latest.legsCm, prevVal: prev?.legsCm, unit: "cm" },
+                  { label: labels.weight, curr: latest.weightKg, prevVal: prev?.weightKg, unit: "kg" },
+                  { label: labels.waist, curr: latest.waistCm, prevVal: prev?.waistCm, unit: "cm" },
+                  { label: labels.hips, curr: latest.hipsCm, prevVal: prev?.hipsCm, unit: "cm" },
+                  { label: labels.chest, curr: latest.chestCm, prevVal: prev?.chestCm, unit: "cm" },
+                  { label: labels.arms, curr: latest.armsCm, prevVal: prev?.armsCm, unit: "cm" },
+                  { label: labels.legs, curr: latest.legsCm, prevVal: prev?.legsCm, unit: "cm" },
                 ].map(({ label, curr, prevVal, unit }) => {
                   if (curr == null) return null;
                   const diff = prevVal != null ? delta(curr, prevVal) : null;
@@ -78,7 +82,7 @@ export default async function ProgressPage() {
                             diff.dir === "down" ? "text-emerald-600" : "text-red-500"
                           }`}
                         >
-                          {diff.dir === "down" ? "▼" : "▲"} {diff.val} {unit} vs last
+                          {diff.dir === "down" ? "▼" : "▲"} {fill(t.vsLast, { diff: diff.val, unit })}
                         </p>
                       )}
                     </div>
@@ -88,7 +92,7 @@ export default async function ProgressPage() {
 
               {/* History */}
               <div className="mt-4 pt-4 border-t border-slate-100">
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">History</p>
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">{t.history}</p>
                 {measurements.map((m) => (
                   <div
                     key={m.id}
@@ -104,13 +108,13 @@ export default async function ProgressPage() {
             </CardContent>
           ) : (
             <CardContent>
-              <p className="text-sm text-slate-500">No measurements logged yet.</p>
+              <p className="text-sm text-slate-500">{t.noMeasurements}</p>
               <p className="text-xs text-slate-400 mt-1">
-                First time?{" "}
+                {t.firstTimeBefore}{" "}
                 <Link href={HOW_TO_MEASURE_PATH} className="text-blue-600 hover:underline">
-                  See how to take each measurement
+                  {t.firstTimeLink}
                 </Link>{" "}
-                so your numbers are comparable week to week.
+                {t.firstTimeAfter}
               </p>
             </CardContent>
           )}
@@ -120,7 +124,7 @@ export default async function ProgressPage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Activity size={16} className="text-blue-600" /> Strength Progress
+              <Activity size={16} className="text-blue-600" /> {t.strengthTitle}
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
@@ -142,7 +146,9 @@ export default async function ProgressPage() {
                               key={i}
                               className="text-xs bg-white border border-slate-200 text-slate-600 rounded px-2 py-0.5"
                             >
-                              {s.weightKg != null ? `${s.weightKg}kg × ${s.reps}` : `${s.reps} reps`}
+                              {s.weightKg != null
+                                ? fill(copy.client.common.setWeighted, { weight: s.weightKg, reps: s.reps })
+                                : fill(copy.client.common.setBodyweight, { reps: s.reps })}
                             </span>
                           ))}
                         </div>
@@ -152,7 +158,7 @@ export default async function ProgressPage() {
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-slate-500">No workouts logged yet.</p>
+              <p className="text-sm text-slate-500">{t.noWorkouts}</p>
             )}
           </CardContent>
         </Card>

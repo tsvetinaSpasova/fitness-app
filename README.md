@@ -50,6 +50,10 @@ Two hosted Supabase projects (org `tsvetinaSpasova's Org`, region `eu-west-3`):
 - Prod auth currently **auto-confirms** signups (Supabase's built-in mailer only delivers to team members). Set up custom SMTP and re-enable email confirmation before opening signups to strangers.
 - Signups always create client accounts; the prod coach account was created via the Auth admin API with `role: coach` metadata.
 
+## Changing app text
+
+All user-facing copy lives in `src/content/copy.json`; see [docs/how-to-change-text.md](docs/how-to-change-text.md) for the non-developer workflow.
+
 ## Tests
 
 ```bash

@@ -3,6 +3,9 @@ import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle } from "lucide-react";
+import { copy } from "@/lib/copy";
+
+const t = copy.coach.assignProgramme;
 
 interface TemplateOption {
   id: string;
@@ -40,14 +43,13 @@ export function AssignProgramme({
         }
       >
         {hasProgramme && <AlertTriangle size={13} />}
-        {hasProgramme ? "Assign a new programme" : "Assign"}
+        {hasProgramme ? t.assignNew : t.assign}
       </Button>
       {open && (
         <div className="absolute right-0 top-full mt-1 z-20 w-64 bg-white border border-slate-200 rounded-lg shadow-lg py-1">
           {hasProgramme && (
             <p className="px-3 py-2 text-xs text-amber-700 bg-amber-50 border-b border-amber-100">
-              Replaces the current programme — customisations to it will no
-              longer apply. Logged workout history is kept.
+              {t.replaceWarning}
             </p>
           )}
           {templates.map((t) => (
@@ -60,7 +62,7 @@ export function AssignProgramme({
             </Link>
           ))}
           {templates.length === 0 && (
-            <p className="px-3 py-2 text-sm text-slate-500">No templates in your library.</p>
+            <p className="px-3 py-2 text-sm text-slate-500">{t.noTemplates}</p>
           )}
         </div>
       )}

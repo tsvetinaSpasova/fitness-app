@@ -3,10 +3,13 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { copy, fill } from "@/lib/copy";
 import { createClient } from "@/lib/supabase/client";
 import type { Exercise } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Plus, Play, Trash2 } from "lucide-react";
+
+const t = copy.editors.exerciseLibrary;
 
 interface FormState {
   id?: string;
@@ -77,25 +80,25 @@ function ExerciseForm({
   return (
     <div className="bg-white rounded-xl border border-blue-200 shadow-sm p-5 mb-5 space-y-3">
       <p className="font-semibold text-slate-900 text-sm">
-        {form.id ? "Edit exercise" : "New exercise"}
+        {form.id ? t.formTitleEdit : t.formTitleNew}
       </p>
       <div className="grid sm:grid-cols-2 gap-3">
         <input
-          placeholder="Name *"
+          placeholder={t.namePlaceholder}
           value={form.name}
           onChange={(e) => set("name", e.target.value)}
           className={inputClass}
           autoFocus
         />
         <input
-          placeholder="Muscle group *"
+          placeholder={t.muscleGroupPlaceholder}
           value={form.muscleGroup}
           onChange={(e) => set("muscleGroup", e.target.value)}
           className={inputClass}
         />
       </div>
       <textarea
-        placeholder="Instructions"
+        placeholder={t.instructionsPlaceholder}
         value={form.instructions}
         onChange={(e) => set("instructions", e.target.value)}
         rows={2}
@@ -103,13 +106,13 @@ function ExerciseForm({
       />
       <div className="grid sm:grid-cols-2 gap-3">
         <input
-          placeholder="Video URL"
+          placeholder={t.videoUrlPlaceholder}
           value={form.videoUrl}
           onChange={(e) => set("videoUrl", e.target.value)}
           className={inputClass}
         />
         <input
-          placeholder="Alternatives (comma-separated)"
+          placeholder={t.alternativesPlaceholder}
           value={form.alternatives}
           onChange={(e) => set("alternatives", e.target.value)}
           className={inputClass}
@@ -122,15 +125,15 @@ function ExerciseForm({
           onChange={(e) => set("requiresWeight", e.target.checked)}
           className="accent-blue-600"
         />
-        Uses weights — uncheck for bodyweight exercises (reps only)
+        {t.usesWeightsLabel}
       </label>
       {error && <p className="text-xs text-red-600">{error}</p>}
       <div className="flex gap-2">
         <Button size="sm" onClick={save} disabled={saving || !form.name.trim() || !form.muscleGroup.trim()}>
-          {saving ? "Saving…" : "Save exercise"}
+          {saving ? t.saving : t.saveExercise}
         </Button>
         <Button size="sm" variant="ghost" onClick={onCancel}>
-          Cancel
+          {t.cancel}
         </Button>
       </div>
     </div>
@@ -180,13 +183,13 @@ export function ExerciseLibrary({
     <>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Exercise Library</h1>
+          <h1 className="text-2xl font-bold text-slate-900">{t.title}</h1>
           <p className="text-slate-500 text-sm mt-0.5">
-            {exercises.length} exercise{exercises.length !== 1 ? "s" : ""}
+            {fill(exercises.length === 1 ? t.countOne : t.countOther, { count: exercises.length })}
           </p>
         </div>
         <Button size="sm" onClick={() => setEditing({ ...EMPTY_FORM })}>
-          <Plus size={15} /> Add exercise
+          <Plus size={15} /> {t.addExercise}
         </Button>
       </div>
 
@@ -205,7 +208,7 @@ export function ExerciseLibrary({
               : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
           )}
         >
-          All
+          {t.filterAll}
         </button>
         {muscleGroups.map((group) => (
           <button
@@ -233,12 +236,12 @@ export function ExerciseLibrary({
                 <div className="flex items-center gap-2 mb-1">
                   <p className="font-semibold text-slate-900 text-sm">{exercise.name}</p>
                   <Badge variant="muted">{exercise.muscleGroup}</Badge>
-                  {!exercise.requiresWeight && <Badge variant="blue">Bodyweight</Badge>}
+                  {!exercise.requiresWeight && <Badge variant="blue">{t.bodyweightBadge}</Badge>}
                 </div>
                 <p className="text-xs text-slate-500">{exercise.instructions}</p>
                 {exercise.alternatives && exercise.alternatives.length > 0 && (
                   <div className="mt-2 flex flex-wrap gap-1.5">
-                    <span className="text-xs text-slate-400">Alternatives:</span>
+                    <span className="text-xs text-slate-400">{t.alternativesLabel}</span>
                     {exercise.alternatives.map((alt) => (
                       <span
                         key={alt}
@@ -258,7 +261,7 @@ export function ExerciseLibrary({
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-50 transition-colors"
                   >
-                    <Play size={13} /> Video
+                    <Play size={13} /> {t.video}
                   </a>
                 )}
                 <Button
@@ -276,7 +279,7 @@ export function ExerciseLibrary({
                     })
                   }
                 >
-                  Edit
+                  {t.edit}
                 </Button>
                 {confirmingId === exercise.id ? (
                   <>
@@ -286,10 +289,10 @@ export function ExerciseLibrary({
                       onClick={() => remove(exercise.id)}
                       disabled={deleting}
                     >
-                      <Trash2 size={13} className="text-red-500" /> Confirm delete
+                      <Trash2 size={13} className="text-red-500" /> {t.confirmDelete}
                     </Button>
                     <Button size="sm" variant="ghost" onClick={() => setConfirmingId(null)}>
-                      Cancel
+                      {t.cancel}
                     </Button>
                   </>
                 ) : (
@@ -301,19 +304,21 @@ export function ExerciseLibrary({
                     disabled={usedIn > 0}
                     title={
                       usedIn > 0
-                        ? `Used in ${usedIn} workout${usedIn !== 1 ? "s" : ""} — remove it from them first.`
-                        : "Delete this exercise"
+                        ? fill(usedIn === 1 ? t.deleteBlockedTitleOne : t.deleteBlockedTitleOther, {
+                            count: usedIn,
+                          })
+                        : t.deleteTitle
                     }
                     onClick={() => setConfirmingId(exercise.id)}
                   >
-                    <Trash2 size={13} className="text-red-500" /> Delete
+                    <Trash2 size={13} className="text-red-500" /> {t.delete}
                   </Button>
                 )}
               </div>
             </div>
             {usedIn > 0 && (
               <p className="text-xs text-slate-400 mt-1.5">
-                Used in {usedIn} workout{usedIn !== 1 ? "s" : ""}, so it can&apos;t be deleted.
+                {fill(usedIn === 1 ? t.usedInOne : t.usedInOther, { count: usedIn })}
               </p>
             )}
             {confirmingId === exercise.id && deleteError && (
@@ -323,9 +328,7 @@ export function ExerciseLibrary({
           );
         })}
         {visible.length === 0 && (
-          <p className="text-sm text-slate-500 px-5 py-6 text-center">
-            No exercises yet. Add your first exercise to build the library.
-          </p>
+          <p className="text-sm text-slate-500 px-5 py-6 text-center">{t.empty}</p>
         )}
       </div>
     </>

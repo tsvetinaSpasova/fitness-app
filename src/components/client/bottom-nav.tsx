@@ -3,12 +3,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Dumbbell, LineChart, Camera, User } from "lucide-react";
+import { copy } from "@/lib/copy";
 
 const NAV = [
-  { href: "/client", label: "Workouts", icon: Dumbbell, exact: true },
-  { href: "/client/progress", label: "Progress", icon: LineChart },
-  { href: "/client/photos", label: "Photos", icon: Camera },
-  { href: "/client/profile", label: "Profile", icon: User },
+  { href: "/client", label: copy.client.nav.workouts, icon: Dumbbell, exact: true },
+  { href: "/client/progress", label: copy.client.nav.progress, icon: LineChart },
+  { href: "/client/photos", label: copy.client.nav.photos, icon: Camera },
+  { href: "/client/profile", label: copy.client.nav.profile, icon: User },
 ];
 
 export function BottomNav() {

@@ -6,6 +6,9 @@ import { Badge } from "@/components/ui/badge";
 import type { Client } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
 import { ChevronRight, Search } from "lucide-react";
+import { copy, fill } from "@/lib/copy";
+
+const t = copy.coach.clients;
 
 export function ClientList({
   clients,
@@ -32,7 +35,7 @@ export function ClientList({
         <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
         <input
           type="search"
-          placeholder="Search clients…"
+          placeholder={t.searchPlaceholder}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           className="w-full pl-10 pr-4 py-2.5 text-sm rounded-lg border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -57,7 +60,9 @@ export function ClientList({
               </div>
               <div className="hidden sm:flex flex-col items-end gap-1 shrink-0">
                 {programmeName && <Badge variant="blue">{programmeName}</Badge>}
-                <p className="text-xs text-slate-400">Joined {formatDate(client.joinedAt)}</p>
+                <p className="text-xs text-slate-400">
+                  {fill(t.joined, { date: formatDate(client.joinedAt) })}
+                </p>
               </div>
               <ChevronRight size={16} className="text-slate-300 group-hover:text-slate-500 transition-colors shrink-0" />
             </Link>
@@ -65,9 +70,7 @@ export function ClientList({
         })}
         {filtered.length === 0 && (
           <p className="text-sm text-slate-500 px-5 py-6 text-center">
-            {clients.length === 0
-              ? "No clients yet. Clients appear here once they create an account."
-              : "No clients match your search."}
+            {clients.length === 0 ? t.noClients : t.noMatches}
           </p>
         )}
       </div>

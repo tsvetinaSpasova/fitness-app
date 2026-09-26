@@ -4,11 +4,14 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import { CheckCircle2 } from "lucide-react";
+import { copy } from "@/lib/copy";
+
+const t = copy.client.checkinForm;
 
 const QUESTIONS = [
-  { key: "energy" as const, label: "Energy levels", emoji: "⚡", desc: "How energetic do you feel?" },
-  { key: "sleep" as const, label: "Sleep quality", emoji: "😴", desc: "How well did you sleep this week?" },
-  { key: "nutrition" as const, label: "Nutrition", emoji: "🥗", desc: "How well did you eat this week?" },
+  { key: "energy" as const, label: t.energyLabel, emoji: "⚡", desc: t.energyDesc },
+  { key: "sleep" as const, label: t.sleepLabel, emoji: "😴", desc: t.sleepDesc },
+  { key: "nutrition" as const, label: t.nutritionLabel, emoji: "🥗", desc: t.nutritionDesc },
 ];
 
 function RatingSlider({
@@ -41,8 +44,8 @@ function RatingSlider({
         className="w-full accent-blue-600"
       />
       <div className="flex justify-between text-xs text-slate-400 mt-1">
-        <span>1 — Poor</span>
-        <span>10 — Great</span>
+        <span>{t.scaleLow}</span>
+        <span>{t.scaleHigh}</span>
       </div>
     </div>
   );
@@ -84,8 +87,8 @@ export function CheckInForm({ clientId }: { clientId: string }) {
         <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mb-4">
           <CheckCircle2 size={32} className="text-emerald-600" />
         </div>
-        <h2 className="text-xl font-bold text-slate-900">Check-in submitted!</h2>
-        <p className="text-slate-500 text-sm mt-1">Your coach will review this shortly.</p>
+        <h2 className="text-xl font-bold text-slate-900">{t.submittedTitle}</h2>
+        <p className="text-slate-500 text-sm mt-1">{t.submittedBody}</p>
         <Button
           variant="secondary"
           className="mt-6"
@@ -94,7 +97,7 @@ export function CheckInForm({ clientId }: { clientId: string }) {
             setNotes("");
           }}
         >
-          View history
+          {t.viewHistory}
         </Button>
       </div>
     );
@@ -116,12 +119,12 @@ export function CheckInForm({ clientId }: { clientId: string }) {
       {/* Notes */}
       <div className="bg-white rounded-xl border border-slate-200 p-4">
         <label className="block text-sm font-semibold text-slate-900 mb-2">
-          Any notes for your coach? (optional)
+          {t.notesLabel}
         </label>
         <textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          placeholder="Feeling great this week, sleep has improved…"
+          placeholder={t.notesPlaceholder}
           rows={3}
           className="w-full text-sm text-slate-700 placeholder-slate-400 border border-slate-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
         />
@@ -130,7 +133,7 @@ export function CheckInForm({ clientId }: { clientId: string }) {
       {error && <p className="text-sm text-red-600">{error}</p>}
 
       <Button className="w-full" size="lg" onClick={submit} disabled={submitting}>
-        {submitting ? "Submitting…" : "Submit Check-in"}
+        {submitting ? t.submitting : t.submit}
       </Button>
     </div>
   );

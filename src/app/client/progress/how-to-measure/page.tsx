@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentClient } from "@/lib/data";
 import { GENERAL_TIPS, MEASUREMENT_GUIDES } from "@/lib/measurement-guide";
+import { copy, fill } from "@/lib/copy";
 import { youTubeEmbedUrl } from "@/lib/utils";
 import { ArrowLeft, Ruler, Lightbulb, Play } from "lucide-react";
 
@@ -12,6 +13,7 @@ import { ArrowLeft, Ruler, Lightbulb, Play } from "lucide-react";
  * the guide key as their id so those links can deep-link straight to a measure.
  */
 export default async function HowToMeasurePage() {
+  const t = copy.measurementGuide.page;
   const client = await getCurrentClient();
   if (!client) redirect("/login");
 
@@ -22,17 +24,17 @@ export default async function HowToMeasurePage() {
           href="/client/progress"
           className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800 mb-3 transition-colors"
         >
-          <ArrowLeft size={15} /> Back to progress
+          <ArrowLeft size={15} /> {t.backLink}
         </Link>
-        <h1 className="text-xl font-bold text-slate-900">How to measure</h1>
+        <h1 className="text-xl font-bold text-slate-900">{t.title}</h1>
         <p className="text-slate-500 text-sm mt-0.5">
-          Take each measurement the same way every time so the numbers tell the truth.
+          {t.intro}
         </p>
       </div>
 
       <div className="px-4 py-5 space-y-4">
         {/* Jump list */}
-        <nav aria-label="Measurements" className="flex flex-wrap gap-2">
+        <nav aria-label={t.jumpListLabel} className="flex flex-wrap gap-2">
           {MEASUREMENT_GUIDES.map((g) => (
             <a
               key={g.key}
@@ -47,7 +49,7 @@ export default async function HowToMeasurePage() {
         {/* Ground rules */}
         <section className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
           <p className="text-sm font-semibold text-amber-800 flex items-center gap-1.5">
-            <Lightbulb size={15} /> Before you start
+            <Lightbulb size={15} /> {t.beforeYouStart}
           </p>
           <ul className="mt-2 space-y-1.5">
             {GENERAL_TIPS.map((tip) => (
@@ -86,7 +88,7 @@ export default async function HowToMeasurePage() {
                 <div className="aspect-video bg-slate-900">
                   <iframe
                     src={embed}
-                    title={`How to measure your ${g.label.toLowerCase()}`}
+                    title={fill(t.videoTitle, { measure: g.label.toLowerCase() })}
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
                     className="w-full h-full"
@@ -97,7 +99,7 @@ export default async function HowToMeasurePage() {
               <div className="px-4 py-3 space-y-3">
                 <div>
                   <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5 flex items-center gap-1">
-                    <Play size={11} /> Steps
+                    <Play size={11} /> {t.stepsHeading}
                   </p>
                   <ol className="space-y-1.5">
                     {g.steps.map((step, i) => (
@@ -112,7 +114,7 @@ export default async function HowToMeasurePage() {
                 </div>
                 <div className="bg-slate-50 rounded-lg px-3 py-2.5">
                   <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">
-                    Watch out for
+                    {t.tipsHeading}
                   </p>
                   <ul className="space-y-1">
                     {g.tips.map((tip) => (
@@ -129,7 +131,7 @@ export default async function HowToMeasurePage() {
         })}
 
         <p className="text-center text-xs text-slate-400 pt-1">
-          Not sure about a reading? Take it twice and log the average.
+          {t.footer}
         </p>
       </div>
     </div>

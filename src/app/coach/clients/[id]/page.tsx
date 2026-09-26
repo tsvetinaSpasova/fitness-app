@@ -16,6 +16,7 @@ import {
   getWorkoutLogs,
 } from "@/lib/data";
 import { formatDate } from "@/lib/utils";
+import { copy, fill } from "@/lib/copy";
 import {
   ArrowLeft,
   Camera,
@@ -32,6 +33,7 @@ export default async function ClientDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const t = copy.coach.clientDetail;
   const { id } = await params;
   const client = await getClient(id);
   if (!client) notFound();
@@ -55,7 +57,7 @@ export default async function ClientDetailPage({
         href="/coach"
         className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800 mb-5 transition-colors"
       >
-        <ArrowLeft size={15} /> Back to dashboard
+        <ArrowLeft size={15} /> {t.backToDashboard}
       </Link>
 
       {/* Client header */}
@@ -66,7 +68,7 @@ export default async function ClientDetailPage({
           <p className="text-slate-500 text-sm">{client.email}</p>
           <div className="flex flex-wrap gap-2 mt-3">
             {client.goal && <Badge variant="blue">{client.goal}</Badge>}
-            <Badge variant="muted">Joined {formatDate(client.joinedAt)}</Badge>
+            <Badge variant="muted">{fill(t.joined, { date: formatDate(client.joinedAt) })}</Badge>
             {programme && <Badge variant="default">{programme.name}</Badge>}
           </div>
         </div>
@@ -80,7 +82,7 @@ export default async function ClientDetailPage({
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="flex items-center gap-2">
                 <Dumbbell size={16} className="text-blue-600" />
-                Assigned Programme
+                {t.assignedProgrammeTitle}
               </CardTitle>
               <div className="flex items-center gap-2">
                 {programme && (
@@ -88,7 +90,7 @@ export default async function ClientDetailPage({
                     href={`/coach/programmes/${programme.id}`}
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-50 border border-slate-200 transition-colors"
                   >
-                    <Pencil size={12} /> Edit
+                    <Pencil size={12} /> {t.edit}
                   </Link>
                 )}
                 <AssignProgramme
@@ -102,7 +104,9 @@ export default async function ClientDetailPage({
               <CardContent className="py-3 px-0">
                 <div className="px-5 mb-2">
                   <p className="font-semibold text-slate-900">{programme.name}</p>
-                  <p className="text-sm text-slate-500">{programme.workouts.length} workouts per cycle</p>
+                  <p className="text-sm text-slate-500">
+                    {fill(t.workoutsPerCycle, { count: programme.workouts.length })}
+                  </p>
                 </div>
                 <div className="divide-y divide-slate-100">
                   {programme.workouts.map((w) => (
@@ -113,7 +117,9 @@ export default async function ClientDetailPage({
                     >
                       <div>
                         <p className="text-sm font-medium text-slate-800">{w.name}</p>
-                        <p className="text-xs text-slate-500">{w.exercises.length} exercises</p>
+                        <p className="text-xs text-slate-500">
+                          {fill(t.exerciseCount, { count: w.exercises.length })}
+                        </p>
                       </div>
                       <ChevronRight size={15} className="text-slate-300" />
                     </Link>
@@ -122,7 +128,7 @@ export default async function ClientDetailPage({
               </CardContent>
             ) : (
               <CardContent>
-                <p className="text-sm text-slate-500">No programme assigned yet.</p>
+                <p className="text-sm text-slate-500">{t.noProgramme}</p>
               </CardContent>
             )}
           </Card>
@@ -132,7 +138,7 @@ export default async function ClientDetailPage({
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <ClipboardCheck size={16} className="text-blue-600" />
-                Recent Workouts
+                {t.recentWorkoutsTitle}
               </CardTitle>
             </CardHeader>
             {logs.length > 0 ? (
@@ -147,7 +153,7 @@ export default async function ClientDetailPage({
                         </div>
                         <div className="text-right">
                           <Badge variant={log.status === "completed" ? "success" : "warning"}>
-                            {log.status === "completed" ? "Completed" : "In Progress"}
+                            {log.status === "completed" ? t.statusCompleted : t.statusInProgress}
                           </Badge>
                           <p className="text-xs text-slate-400 mt-1">{formatDate(log.loggedAt)}</p>
                         </div>
@@ -164,7 +170,9 @@ export default async function ClientDetailPage({
                                 key={i}
                                 className="text-xs bg-slate-50 border border-slate-200 rounded px-2 py-0.5 text-slate-600"
                               >
-                                {s.weightKg != null ? `${s.weightKg}kg × ${s.reps}` : `${s.reps} reps`}
+                                {s.weightKg != null
+                                  ? fill(t.setWithWeight, { weight: s.weightKg, reps: s.reps })
+                                  : fill(t.setRepsOnly, { reps: s.reps })}
                               </span>
                             ))}
                           </div>
@@ -176,7 +184,7 @@ export default async function ClientDetailPage({
               </CardContent>
             ) : (
               <CardContent>
-                <p className="text-sm text-slate-500">No workouts logged yet.</p>
+                <p className="text-sm text-slate-500">{t.noWorkouts}</p>
               </CardContent>
             )}
           </Card>
@@ -187,7 +195,7 @@ export default async function ClientDetailPage({
           {/* Check-ins */}
           <Card>
             <CardHeader>
-              <CardTitle>Recent Check-ins</CardTitle>
+              <CardTitle>{t.recentCheckInsTitle}</CardTitle>
             </CardHeader>
             {checkins.length > 0 ? (
               <CardContent className="space-y-3">
@@ -196,9 +204,9 @@ export default async function ClientDetailPage({
                     <p className="font-medium text-slate-700 text-xs mb-1.5">{formatDate(ci.date)}</p>
                     <div className="grid grid-cols-3 gap-1.5 text-center">
                       {[
-                        { label: "Energy", val: ci.energy },
-                        { label: "Sleep", val: ci.sleep },
-                        { label: "Nutrition", val: ci.nutrition },
+                        { label: t.checkInEnergy, val: ci.energy },
+                        { label: t.checkInSleep, val: ci.sleep },
+                        { label: t.checkInNutrition, val: ci.nutrition },
                       ].map(({ label, val }) => (
                         <div key={label} className="bg-slate-50 rounded-lg py-1.5">
                           <p className="text-lg font-bold text-slate-900">{val}</p>
@@ -214,7 +222,7 @@ export default async function ClientDetailPage({
               </CardContent>
             ) : (
               <CardContent>
-                <p className="text-sm text-slate-500">No check-ins yet.</p>
+                <p className="text-sm text-slate-500">{t.noCheckIns}</p>
               </CardContent>
             )}
           </Card>
@@ -224,18 +232,18 @@ export default async function ClientDetailPage({
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Scale size={15} className="text-blue-600" /> Measurements
+                  <Scale size={15} className="text-blue-600" /> {t.measurementsTitle}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
                 <p className="text-xs text-slate-400 mb-2">{formatDate(latestMeasurement.date)}</p>
                 {[
-                  { label: "Weight", value: latestMeasurement.weightKg, unit: "kg" },
-                  { label: "Waist", value: latestMeasurement.waistCm, unit: "cm" },
-                  { label: "Hips", value: latestMeasurement.hipsCm, unit: "cm" },
-                  { label: "Chest", value: latestMeasurement.chestCm, unit: "cm" },
-                  { label: "Arms", value: latestMeasurement.armsCm, unit: "cm" },
-                  { label: "Legs", value: latestMeasurement.legsCm, unit: "cm" },
+                  { label: t.measurementWeight, value: latestMeasurement.weightKg, unit: "kg" },
+                  { label: t.measurementWaist, value: latestMeasurement.waistCm, unit: "cm" },
+                  { label: t.measurementHips, value: latestMeasurement.hipsCm, unit: "cm" },
+                  { label: t.measurementChest, value: latestMeasurement.chestCm, unit: "cm" },
+                  { label: t.measurementArms, value: latestMeasurement.armsCm, unit: "cm" },
+                  { label: t.measurementLegs, value: latestMeasurement.legsCm, unit: "cm" },
                 ].map(({ label, value, unit }) =>
                   value != null ? (
                     <div key={label} className="flex justify-between text-sm">
@@ -252,7 +260,7 @@ export default async function ClientDetailPage({
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Camera size={15} className="text-blue-600" /> Progress Photos
+                <Camera size={15} className="text-blue-600" /> {t.progressPhotosTitle}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -265,14 +273,14 @@ export default async function ClientDetailPage({
                       <img
                         key={photo.id}
                         src={photo.url}
-                        alt={`Progress photo from ${formatDate(photo.date)}`}
+                        alt={fill(t.progressPhotoAlt, { date: formatDate(photo.date) })}
                         className="rounded-lg aspect-[3/4] w-full object-cover bg-slate-100 border border-slate-200"
                       />
                     ) : null
                   )}
                 </div>
               ) : (
-                <p className="text-sm text-slate-500">No photos yet.</p>
+                <p className="text-sm text-slate-500">{t.noPhotos}</p>
               )}
             </CardContent>
           </Card>
@@ -281,7 +289,7 @@ export default async function ClientDetailPage({
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <StickyNote size={15} className="text-blue-600" /> Notes
+                <StickyNote size={15} className="text-blue-600" /> {t.notesTitle}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -293,7 +301,7 @@ export default async function ClientDetailPage({
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-slate-500">No notes yet.</p>
+                <p className="text-sm text-slate-500">{t.noNotes}</p>
               )}
               <AddNoteForm clientId={client.id} />
             </CardContent>

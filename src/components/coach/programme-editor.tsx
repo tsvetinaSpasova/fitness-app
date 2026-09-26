@@ -11,10 +11,13 @@ import {
   WorkoutExercisesEditor,
   type ExerciseDraft,
 } from "@/components/coach/workout-exercises-editor";
+import { copy, fill } from "@/lib/copy";
 import { createClient } from "@/lib/supabase/client";
 import type { Exercise, Programme, Workout, WorkoutExercise } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { ArrowLeft, BookOpen, Bookmark, Plus, Trash2 } from "lucide-react";
+
+const t = copy.editors.programme;
 
 // One editor for both cases: a template (client_id null) and a client's
 // personal copy (FR-4.7). Drafts hold input values as strings; parsing and
@@ -54,7 +57,7 @@ function isPristineTemplate(w: WorkoutDraft): boolean {
 }
 
 function toDrafts(programme: Programme | null, templates: Workout[]): WorkoutDraft[] {
-  if (!programme) return [{ name: "Workout 1", exercises: [] }];
+  if (!programme) return [{ name: fill(t.defaultWorkoutName, { n: 1 }), exercises: [] }];
   return programme.workouts.map((w) => {
     const d = workoutToDraft(w);
     const t = w.sourceWorkoutId ? templates.find((x) => x.id === w.sourceWorkoutId) : undefined;
@@ -95,19 +98,19 @@ export function ProgrammeEditor({
 
   const client = assignTo ? { id: assignTo.clientId, name: assignTo.clientName } : owner;
   const backHref = client ? `/coach/clients/${client.id}` : "/coach/programmes";
-  const backLabel = client ? `Back to ${client.name}` : "Back to programmes";
+  const backLabel = client ? fill(t.backToClient, { name: client.name }) : t.backToProgrammes;
 
   function updateWorkout(idx: number, patch: Partial<WorkoutDraft>) {
     setWorkouts((prev) => prev.map((w, i) => (i === idx ? { ...w, ...patch } : w)));
   }
 
   function validateWorkout(w: WorkoutDraft, i: number): string | null {
-    if (!w.name.trim()) return `Workout ${i + 1} needs a name.`;
+    if (!w.name.trim()) return fill(t.validationWorkoutName, { n: i + 1 });
     return validateExerciseDrafts(w.exercises, w.name);
   }
 
   function validate(): string | null {
-    if (!name.trim()) return "Programme name is required.";
+    if (!name.trim()) return t.validationProgrammeName;
     for (const [i, w] of workouts.entries()) {
       const problem = validateWorkout(w, i);
       if (problem) return problem;
@@ -124,7 +127,7 @@ export function ProgrammeEditor({
     const w = workouts[wIdx];
     const problem =
       validateWorkout(w, wIdx) ??
-      (w.exercises.length === 0 ? `Add at least one exercise to "${w.name}" first.` : null);
+      (w.exercises.length === 0 ? fill(t.validationNoExercises, { name: w.name }) : null);
     if (problem) {
       setError(problem);
       return;
@@ -153,7 +156,7 @@ export function ProgrammeEditor({
         .select("id")
         .single();
       if (iError || !data) {
-        setError(iError?.message ?? "Could not save the common workout.");
+        setError(iError?.message ?? t.errorSaveCommon);
         setSavingCommon(null);
         return;
       }
@@ -203,7 +206,9 @@ export function ProgrammeEditor({
   function addWorkout(template?: Workout) {
     setWorkouts((prev) => [
       ...prev,
-      template ? draftFromTemplate(template) : { name: `Workout ${prev.length + 1}`, exercises: [] },
+      template
+        ? draftFromTemplate(template)
+        : { name: fill(t.defaultWorkoutName, { n: prev.length + 1 }), exercises: [] },
     ]);
     setAddingWorkout(false);
   }
@@ -237,7 +242,7 @@ export function ProgrammeEditor({
         .select("id")
         .single();
       if (pError || !data) {
-        setError(pError?.message ?? "Could not create the client's programme.");
+        setError(pError?.message ?? t.errorCreateClientProgramme);
         setSaving(false);
         return;
       }
@@ -259,7 +264,7 @@ export function ProgrammeEditor({
         .select("id")
         .single();
       if (pError || !data) {
-        setError(pError?.message ?? "Could not create programme.");
+        setError(pError?.message ?? t.errorCreateProgramme);
         setSaving(false);
         return;
       }
@@ -307,7 +312,7 @@ export function ProgrammeEditor({
           .select("id")
           .single();
         if (wError || !data) {
-          setError(wError?.message ?? "Could not save workout.");
+          setError(wError?.message ?? t.errorSaveWorkout);
           setSaving(false);
           return;
         }
@@ -379,32 +384,32 @@ export function ProgrammeEditor({
 
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-slate-900">
-          {assignTo ? "Assign Programme" : initial ? "Edit Programme" : "New Programme"}
+          {assignTo ? t.titleAssign : initial ? t.titleEdit : t.titleNew}
         </h1>
         <p className="text-slate-500 text-sm mt-0.5">
           {assignTo
-            ? `Prepopulated from the template — tweak anything for ${assignTo.clientName} before assigning. The template itself is not changed.`
+            ? fill(t.introAssign, { name: assignTo.clientName })
             : owner
-              ? `${owner.name}'s personal copy — edits don't affect the template or other clients.`
-              : "Template — assigning it gives each client their own editable copy."}
+              ? fill(t.introOwner, { name: owner.name })
+              : t.introTemplate}
         </p>
       </div>
 
       {/* Programme fields */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 mb-5 flex flex-wrap gap-3">
         <input
-          aria-label="Programme name"
-          placeholder="Programme name *"
+          aria-label={t.programmeNameAriaLabel}
+          placeholder={t.programmeNamePlaceholder}
           value={name}
           onChange={(e) => setName(e.target.value)}
           className={cn(inputClass, "flex-1 min-w-56 font-medium")}
         />
         <label className="flex items-center gap-2 text-sm text-slate-600">
-          Phase
+          {t.phaseLabel}
           <input
             type="number"
             min={1}
-            placeholder="e.g. 1"
+            placeholder={t.phasePlaceholder}
             value={phase}
             onChange={(e) => setPhase(e.target.value)}
             className={cn(inputClass, "w-20")}
@@ -425,8 +430,8 @@ export function ProgrammeEditor({
           >
             <div className="flex items-center gap-3 mb-4">
               <input
-                aria-label="Workout name"
-                placeholder="Workout name *"
+                aria-label={t.workoutNameAriaLabel}
+                placeholder={t.workoutNamePlaceholder}
                 value={w.name}
                 onChange={(e) => updateWorkout(wIdx, { name: e.target.value })}
                 className={cn(inputClass, "flex-1 font-medium")}
@@ -438,19 +443,17 @@ export function ProgrammeEditor({
                 variant="secondary"
                 disabled={pristine || saving || savingCommon != null}
                 title={
-                  pristine
-                    ? "This is an unchanged common workout."
-                    : "Store this workout in the library to reuse in other programmes."
+                  pristine ? t.saveAsCommonPristineTitle : t.saveAsCommonTitle
                 }
                 onClick={() => saveAsCommon(wIdx)}
               >
                 <Bookmark size={13} />
-                {savingCommon === wIdx ? "Saving…" : pristine ? "Saved as common" : "Save as common"}
+                {savingCommon === wIdx ? t.saving : pristine ? t.savedAsCommon : t.saveAsCommon}
               </Button>
               <Button
                 size="sm"
                 variant="ghost"
-                aria-label={`Remove workout ${wIdx + 1}`}
+                aria-label={fill(t.removeWorkoutAriaLabel, { n: wIdx + 1 })}
                 onClick={() => setWorkouts((prev) => prev.filter((_, i) => i !== wIdx))}
               >
                 <Trash2 size={14} className="text-red-500" />
@@ -475,40 +478,39 @@ export function ProgrammeEditor({
         >
           <div className="flex items-baseline justify-between gap-3">
             <div>
-              <p className="text-sm font-semibold text-slate-900">Add a workout</p>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Start from scratch, or pick one of your common workouts.
-              </p>
+              <p className="text-sm font-semibold text-slate-900">{t.addWorkoutHeading}</p>
+              <p className="text-xs text-slate-500 mt-0.5">{t.addWorkoutIntro}</p>
             </div>
             <button
               onClick={() => setAddingWorkout(false)}
               className="text-sm text-slate-500 hover:text-slate-800"
             >
-              Cancel
+              {t.cancel}
             </button>
           </div>
           <div className="mt-3 flex flex-wrap gap-2">
             <Button size="sm" onClick={() => addWorkout()}>
-              <Plus size={13} /> Custom workout
+              <Plus size={13} /> {t.customWorkout}
             </Button>
-            {templates.map((t) => (
-              <Button key={t.id} size="sm" variant="secondary" onClick={() => addWorkout(t)}>
-                <BookOpen size={13} /> {t.name}
+            {templates.map((tpl) => (
+              <Button key={tpl.id} size="sm" variant="secondary" onClick={() => addWorkout(tpl)}>
+                <BookOpen size={13} /> {tpl.name}
                 <span className="text-slate-400 font-normal">
-                  · {t.exercises.length} {t.exercises.length === 1 ? "exercise" : "exercises"}
+                  {fill(
+                    tpl.exercises.length === 1 ? t.exerciseCountOne : t.exerciseCountOther,
+                    { count: tpl.exercises.length }
+                  )}
                 </span>
               </Button>
             ))}
           </div>
           {templates.length === 0 && (
-            <p className="text-xs text-slate-400 mt-3">
-              No common workouts yet — use &ldquo;Save as common&rdquo; on any workout to add one.
-            </p>
+            <p className="text-xs text-slate-400 mt-3">{t.noCommonWorkouts}</p>
           )}
         </div>
       ) : (
         <Button size="sm" variant="secondary" className="mt-4" onClick={() => setAddingWorkout(true)}>
-          <Plus size={13} /> Add workout
+          <Plus size={13} /> {t.addWorkout}
         </Button>
       )}
 
@@ -518,32 +520,30 @@ export function ProgrammeEditor({
         <div className="flex items-center gap-3">
           <Button onClick={save} disabled={saving}>
             {saving
-              ? "Saving…"
+              ? t.saving
               : assignTo
-                ? `Assign to ${assignTo.clientName}`
+                ? fill(t.assignTo, { name: assignTo.clientName })
                 : initial
-                  ? "Save programme"
-                  : "Create programme"}
+                  ? t.saveProgramme
+                  : t.createProgramme}
           </Button>
           <Link href={backHref} className="text-sm text-slate-500 hover:text-slate-800">
-            Cancel
+            {t.cancel}
           </Link>
           {/* Deleting is offered for templates only; a client's copy goes
               away by assigning them a different programme instead. */}
           {initial && !owner && !assignTo && (
             <div className="ml-auto flex items-center gap-2">
               {confirmingDelete && (
-                <span className="text-xs text-slate-500">
-                  Deletes the template and its workouts. Client copies are unaffected.
-                </span>
+                <span className="text-xs text-slate-500">{t.deleteWarning}</span>
               )}
               {confirmingDelete ? (
                 <Button size="sm" variant="secondary" onClick={deleteProgramme} disabled={saving}>
-                  <Trash2 size={13} className="text-red-500" /> Confirm delete
+                  <Trash2 size={13} className="text-red-500" /> {t.confirmDelete}
                 </Button>
               ) : (
                 <Button size="sm" variant="ghost" onClick={() => setConfirmingDelete(true)}>
-                  <Trash2 size={13} className="text-red-500" /> Delete programme
+                  <Trash2 size={13} className="text-red-500" /> {t.deleteProgramme}
                 </Button>
               )}
             </div>

@@ -13,13 +13,16 @@ import {
 import type { User } from "@/lib/types";
 import { Avatar } from "@/components/ui/avatar";
 import { SignOutButton } from "@/components/sign-out-button";
+import { copy } from "@/lib/copy";
+
+const t = copy.coach.sidebar;
 
 const NAV = [
-  { href: "/coach", label: "Dashboard", icon: LayoutDashboard, exact: true },
-  { href: "/coach/clients", label: "Clients", icon: Users },
-  { href: "/coach/programmes", label: "Programmes", icon: BookOpen },
-  { href: "/coach/workouts", label: "Workouts", icon: ClipboardList },
-  { href: "/coach/exercises", label: "Exercises", icon: Dumbbell },
+  { href: "/coach", label: t.navDashboard, icon: LayoutDashboard, exact: true },
+  { href: "/coach/clients", label: t.navClients, icon: Users },
+  { href: "/coach/programmes", label: t.navProgrammes, icon: BookOpen },
+  { href: "/coach/workouts", label: t.navWorkouts, icon: ClipboardList },
+  { href: "/coach/exercises", label: t.navExercises, icon: Dumbbell },
 ];
 
 export function CoachSidebar({ coach }: { coach: User }) {
@@ -29,7 +32,7 @@ export function CoachSidebar({ coach }: { coach: User }) {
     <aside className="w-60 shrink-0 h-screen sticky top-0 bg-white border-r border-slate-200 flex flex-col">
       {/* Logo */}
       <div className="px-5 py-5 border-b border-slate-100">
-        <span className="text-xl font-bold text-blue-600 tracking-tight">FitCoach</span>
+        <span className="text-xl font-bold text-blue-600 tracking-tight">{t.brand}</span>
       </div>
 
       {/* Nav */}

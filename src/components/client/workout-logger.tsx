@@ -14,6 +14,9 @@ import {
   CheckCircle2,
   Play,
 } from "lucide-react";
+import { copy, fill } from "@/lib/copy";
+
+const t = copy.client.workoutLogger;
 
 interface SetState {
   reps: number;
@@ -56,7 +59,7 @@ function ExerciseCard({
       <div className="w-full flex items-center gap-3 px-4 py-3.5">
         <button
           data-testid="exercise-done-btn"
-          aria-label={`Mark all ${exercise.name} sets done`}
+          aria-label={fill(t.markAllDone, { name: exercise.name })}
           onClick={onToggleAll}
           className="shrink-0"
         >
@@ -75,8 +78,13 @@ function ExerciseCard({
           <div>
             <p className="font-semibold text-slate-900 text-sm">{exercise.name}</p>
             <p className="text-xs text-slate-500">
-              {sets} sets × {repsLabel(workoutExercise)} reps · {exercise.muscleGroup}
-              {restSeconds != null && ` · ${restSeconds}s rest`}
+              {fill(t.exerciseSummary, {
+                sets,
+                reps: repsLabel(workoutExercise),
+                muscleGroup: exercise.muscleGroup,
+              })}
+              {restSeconds != null &&
+                ` · ${fill(copy.client.common.restSuffix, { seconds: restSeconds })}`}
             </p>
           </div>
           {expanded ? (
@@ -93,7 +101,7 @@ function ExerciseCard({
           {notes && (
             <div className="bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 mb-3">
               <p className="text-xs text-amber-800">
-                <span className="font-semibold">Coach note:</span> {notes}
+                <span className="font-semibold">{t.coachNote}</span> {notes}
               </p>
             </div>
           )}
@@ -103,9 +111,13 @@ function ExerciseCard({
             <div className="bg-blue-50 rounded-lg px-3 py-2 mb-3 flex items-start gap-2">
               <Info size={13} className="text-blue-500 mt-0.5 shrink-0" />
               <p className="text-xs text-blue-700">
-                Last session:{" "}
+                {t.lastSession}{" "}
                 {previousSets
-                  .map((s) => (s.weightKg != null ? `${s.weightKg}kg × ${s.reps}` : `${s.reps} reps`))
+                  .map((s) =>
+                    s.weightKg != null
+                      ? fill(copy.client.common.setWeighted, { weight: s.weightKg, reps: s.reps })
+                      : fill(copy.client.common.setBodyweight, { reps: s.reps })
+                  )
                   .join(", ")}
               </p>
             </div>
@@ -119,10 +131,10 @@ function ExerciseCard({
                 weighted ? "grid-cols-4" : "grid-cols-3"
               )}
             >
-              <span>Set</span>
-              <span>Prev.</span>
-              {weighted && <span>Weight</span>}
-              <span>Reps</span>
+              <span>{t.colSet}</span>
+              <span>{t.colPrev}</span>
+              {weighted && <span>{t.colWeight}</span>}
+              <span>{t.colReps}</span>
             </div>
             {setStates.map((s, idx) => (
               <div
@@ -148,14 +160,14 @@ function ExerciseCard({
                 <span className="text-xs text-slate-400">
                   {previousSets?.[idx]
                     ? weighted && previousSets[idx].weightKg != null
-                      ? `${previousSets[idx].weightKg}kg`
-                      : `× ${previousSets[idx].reps}`
+                      ? fill(t.prevWeight, { weight: previousSets[idx].weightKg })
+                      : fill(t.prevReps, { reps: previousSets[idx].reps })
                     : "—"}
                 </span>
                 {weighted && (
                   <input
                     type="number"
-                    aria-label={`Set ${idx + 1} weight`}
+                    aria-label={fill(t.setWeightLabel, { n: idx + 1 })}
                     value={s.weightKg || ""}
                     onChange={(e) => onUpdateSet(idx, "weightKg", parseFloat(e.target.value) || 0)}
                     placeholder="0"
@@ -164,7 +176,7 @@ function ExerciseCard({
                 )}
                 <input
                   type="number"
-                  aria-label={`Set ${idx + 1} reps`}
+                  aria-label={fill(t.setRepsLabel, { n: idx + 1 })}
                   value={s.reps || ""}
                   onChange={(e) => onUpdateSet(idx, "reps", parseInt(e.target.value) || 0)}
                   placeholder={String(setDetails?.[idx]?.reps ?? reps)}
@@ -181,7 +193,7 @@ function ExerciseCard({
                 onClick={() => setShowInfo((v) => !v)}
                 className="text-xs text-blue-600 font-medium hover:underline"
               >
-                How to do this
+                {t.howToDoThis}
               </button>
             )}
             {exercise.alternatives && exercise.alternatives.length > 0 && (
@@ -189,7 +201,7 @@ function ExerciseCard({
                 onClick={() => setShowAlts((v) => !v)}
                 className="text-xs text-blue-600 font-medium hover:underline"
               >
-                Need an alternative?
+                {t.needAlternative}
               </button>
             )}
           </div>
@@ -203,7 +215,7 @@ function ExerciseCard({
               {embedUrl ? (
                 <iframe
                   src={embedUrl}
-                  title={`${exercise.name} technique video`}
+                  title={fill(t.videoTitle, { name: exercise.name })}
                   className="w-full aspect-video rounded-lg border border-slate-200"
                   allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
@@ -215,7 +227,7 @@ function ExerciseCard({
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 text-xs text-blue-600 font-medium hover:underline"
                 >
-                  <Play size={12} /> Watch technique video
+                  <Play size={12} /> {t.watchVideo}
                 </a>
               ) : null}
             </div>
@@ -324,7 +336,7 @@ export function WorkoutLogger({
       .select("id")
       .single();
     if (logError || !log) {
-      setError(logError?.message ?? "Could not save workout.");
+      setError(logError?.message ?? t.saveWorkoutError);
       setSaving(false);
       return;
     }
@@ -339,7 +351,7 @@ export function WorkoutLogger({
         .select("id")
         .single();
       if (exError || !exLog) {
-        setError(exError?.message ?? "Could not save exercise log.");
+        setError(exError?.message ?? t.saveExerciseError);
         setSaving(false);
         return;
       }
@@ -372,13 +384,16 @@ export function WorkoutLogger({
           href="/client"
           className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800 mb-3 transition-colors"
         >
-          <ArrowLeft size={15} /> Back
+          <ArrowLeft size={15} /> {copy.client.common.back}
         </Link>
         <h1 className="text-lg font-bold text-slate-900">{workout.name}</h1>
         <p className="text-sm text-slate-500">
-          {exerciseCount} exercises
+          {fill(copy.client.common.exerciseCount, { count: exerciseCount })}
           {doneCount > 0 && (
-            <span data-testid="exercise-progress"> · {doneCount} of {exerciseCount} done</span>
+            <span data-testid="exercise-progress">
+              {" · "}
+              {fill(t.progress, { done: doneCount, total: exerciseCount })}
+            </span>
           )}
         </p>
       </div>
@@ -403,7 +418,7 @@ export function WorkoutLogger({
         <div className="pt-2 pb-4">
           {error && <p className="text-sm text-red-600 mb-2">{error}</p>}
           <Button className="w-full" size="lg" onClick={onCompleteClick} disabled={saving}>
-            <CheckCircle2 size={18} /> {saving ? "Saving…" : "Complete Workout"}
+            <CheckCircle2 size={18} /> {saving ? copy.client.common.saving : t.complete}
           </Button>
         </div>
       </div>
@@ -423,20 +438,20 @@ export function WorkoutLogger({
             onClick={(e) => e.stopPropagation()}
           >
             <p id="complete-confirm-title" className="text-base font-bold text-slate-900">
-              You haven&apos;t completed all your exercises
+              {t.confirmTitle}
             </p>
             <p className="text-sm text-slate-500 mt-1">
               {doneCount === 0
-                ? "Nothing is marked done yet."
-                : `${doneCount} of ${exerciseCount} exercises are done.`}{" "}
-              Are you sure you want to finish the workout?
+                ? t.confirmNoneDone
+                : fill(t.confirmSomeDone, { done: doneCount, total: exerciseCount })}{" "}
+              {t.confirmQuestion}
             </p>
             <div className="mt-4 flex flex-col gap-2">
               <Button size="lg" onClick={complete}>
-                Yes, finish workout
+                {t.confirmYes}
               </Button>
               <Button size="lg" variant="secondary" onClick={() => setConfirming(false)}>
-                Keep going
+                {t.keepGoing}
               </Button>
             </div>
           </div>

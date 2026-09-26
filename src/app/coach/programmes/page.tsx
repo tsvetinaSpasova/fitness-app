@@ -6,9 +6,11 @@ import { DeleteProgramme } from "@/components/coach/delete-programme";
 import { DuplicateProgramme } from "@/components/coach/duplicate-programme";
 import { getProgrammeTemplates, getTemplateAssignmentCounts } from "@/lib/data";
 import { formatDate } from "@/lib/utils";
+import { copy, fill } from "@/lib/copy";
 import { Dumbbell, Pencil, Plus, Users } from "lucide-react";
 
 export default async function ProgrammesPage() {
+  const t = copy.coach.programmes;
   const [programmes, assignmentCounts] = await Promise.all([
     getProgrammeTemplates(),
     getTemplateAssignmentCounts(),
@@ -18,14 +20,16 @@ export default async function ProgrammesPage() {
     <div className="p-6 max-w-4xl mx-auto">
       <div className="mb-6 flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Programmes</h1>
+          <h1 className="text-2xl font-bold text-slate-900">{t.title}</h1>
           <p className="text-slate-500 text-sm mt-0.5">
-            {programmes.length} programme{programmes.length !== 1 ? "s" : ""} in your library
+            {fill(programmes.length === 1 ? t.libraryCountOne : t.libraryCountOther, {
+              count: programmes.length,
+            })}
           </p>
         </div>
         <Link href="/coach/programmes/new">
           <Button size="sm">
-            <Plus size={15} /> New programme
+            <Plus size={15} /> {t.newProgramme}
           </Button>
         </Link>
       </div>
@@ -44,11 +48,11 @@ export default async function ProgrammesPage() {
                 <div>
                   <CardTitle className="text-base">{programme.name}</CardTitle>
                   <p className="text-xs text-slate-400 mt-0.5">
-                    Created {formatDate(programme.createdAt)}
+                    {fill(t.created, { date: formatDate(programme.createdAt) })}
                   </p>
                 </div>
                 {programme.phase && (
-                  <Badge variant="blue">Phase {programme.phase}</Badge>
+                  <Badge variant="blue">{fill(t.phase, { phase: programme.phase })}</Badge>
                 )}
               </CardHeader>
               <CardContent className="pt-0">
@@ -65,7 +69,7 @@ export default async function ProgrammesPage() {
                         <span className="font-medium text-slate-700">{w.name}</span>
                       </div>
                       <span className="text-xs text-slate-400">
-                        {w.exercises.length} exercises
+                        {fill(t.exerciseCount, { count: w.exercises.length })}
                       </span>
                     </Link>
                   ))}
@@ -75,14 +79,16 @@ export default async function ProgrammesPage() {
                 <div className="flex items-center justify-between pt-3 border-t border-slate-100">
                   <div className="flex items-center gap-1.5 text-xs text-slate-500">
                     <Users size={13} />
-                    {assignedCount} client{assignedCount !== 1 ? "s" : ""}
+                    {fill(assignedCount === 1 ? t.clientCountOne : t.clientCountOther, {
+                      count: assignedCount,
+                    })}
                   </div>
                   <div className="flex items-center gap-1">
                     <Link
                       href={`/coach/programmes/${programme.id}`}
                       className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-50 transition-colors"
                     >
-                      <Pencil size={13} /> Edit
+                      <Pencil size={13} /> {t.edit}
                     </Link>
                     <DuplicateProgramme programme={programme} />
                     <DeleteProgramme programmeId={programme.id} />
@@ -93,9 +99,7 @@ export default async function ProgrammesPage() {
           );
         })}
         {programmes.length === 0 && (
-          <p className="text-sm text-slate-500 col-span-full">
-            No programmes yet.
-          </p>
+          <p className="text-sm text-slate-500 col-span-full">{t.empty}</p>
         )}
       </div>
     </div>

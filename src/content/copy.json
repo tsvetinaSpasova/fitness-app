@@ -1,0 +1,563 @@
+{
+  "app": {
+    "title": "FitCoach",
+    "description": "Online fitness coaching platform"
+  },
+  "login": {
+    "brandName": "FitCoach",
+    "tagline": "Online coaching platform",
+    "signIn": {
+      "heading": "Welcome back",
+      "subheading": "Sign in to your account",
+      "button": "Sign in",
+      "buttonLoading": "Signing in…",
+      "switchToSignup": "New here? Create an account",
+      "genericError": "Unable to sign in."
+    },
+    "signUp": {
+      "heading": "Create your account",
+      "subheading": "Start training with your coach",
+      "button": "Create account",
+      "buttonLoading": "Creating account…",
+      "switchToSignin": "Already have an account? Sign in",
+      "confirmEmailInfo": "Account created — check your email to confirm it, then sign in."
+    },
+    "form": {
+      "nameLabel": "Name",
+      "emailLabel": "Email",
+      "passwordLabel": "Password"
+    },
+    "footer": "© 2026 FitCoach. All rights reserved."
+  },
+  "ui": {
+    "combobox": {
+      "noMatches": "No matches"
+    },
+    "greeting": {
+      "morning": "Good morning",
+      "afternoon": "Good afternoon",
+      "evening": "Good evening"
+    },
+    "deletedExerciseName": "Exercise"
+  },
+  "measurementGuide": {
+    "page": {
+      "backLink": "Back to progress",
+      "title": "How to measure",
+      "intro": "Take each measurement the same way every time so the numbers tell the truth.",
+      "jumpListLabel": "Measurements",
+      "beforeYouStart": "Before you start",
+      "videoTitle": "How to measure your {measure}",
+      "stepsHeading": "Steps",
+      "tipsHeading": "Watch out for",
+      "footer": "Not sure about a reading? Take it twice and log the average."
+    },
+    "generalTips": [
+      "Measure first thing in the morning, after the bathroom and before eating or drinking.",
+      "Use the same soft tape measure and the same spot every time — consistency matters more than perfection.",
+      "Keep the tape flat and snug against the skin, but not digging in.",
+      "Relax: stand tall, breathe out normally and don't flex or suck in.",
+      "Measure once every 1–2 weeks. Day-to-day changes are mostly water, not progress."
+    ],
+    "guides": [
+      {
+        "key": "weight",
+        "label": "Weight",
+        "unit": "kg",
+        "where": "On the same scale, same time of day, minimal clothing.",
+        "steps": [
+          "Place the scale on a hard, flat floor — never carpet.",
+          "Weigh yourself first thing in the morning, after the bathroom and before food or drink.",
+          "Wear the same (or no) clothing each time and stand still with weight spread evenly on both feet.",
+          "Record the number to one decimal place if your scale shows it."
+        ],
+        "tips": [
+          "Weight swings 1–2 kg day to day from water, salt and carbs — look at the weekly trend, not a single reading.",
+          "Don't weigh yourself after a workout, a big meal or a night out; those numbers aren't comparable."
+        ]
+      },
+      {
+        "key": "waist",
+        "label": "Waist",
+        "unit": "cm",
+        "where": "Around the narrowest point of your torso, roughly level with your belly button.",
+        "steps": [
+          "Stand up straight with your feet together and your top lifted out of the way.",
+          "Find your natural waist — the narrowest point between your ribs and hips, usually at or just above the navel.",
+          "Wrap the tape around, keeping it level all the way round (check in a mirror).",
+          "Breathe out normally, let your stomach relax, then read the number where the tape overlaps."
+        ],
+        "tips": [
+          "Don't suck in or push out — a relaxed belly is the only repeatable one.",
+          "If your narrowest point is hard to find, use the belly button as the landmark every time."
+        ]
+      },
+      {
+        "key": "hips",
+        "label": "Hips",
+        "unit": "cm",
+        "where": "Around the widest part of your glutes, measured from the side.",
+        "steps": [
+          "Stand with your feet together and your weight evenly balanced.",
+          "Wrap the tape around the fullest part of your hips and glutes — this is usually lower than you expect.",
+          "Look sideways in a mirror to make sure the tape is level front to back.",
+          "Read the number without pulling the tape tight."
+        ],
+        "tips": [
+          "Measure over thin underwear or bare skin; joggers and jeans add centimetres.",
+          "Slide the tape up and down slightly and take the largest reading — that's the true hip line."
+        ]
+      },
+      {
+        "key": "chest",
+        "label": "Chest",
+        "unit": "cm",
+        "where": "Around the fullest part of your chest, at nipple level, under the arms.",
+        "steps": [
+          "Stand relaxed with your arms down by your sides once the tape is in place.",
+          "Wrap the tape around your back and across the fullest part of your chest, roughly nipple height.",
+          "Keep the tape level across your shoulder blades — it tends to slip down at the back.",
+          "Breathe out normally and read the number."
+        ],
+        "tips": [
+          "Don't puff your chest out or flex — you'll only be measuring how well you posed.",
+          "Ask someone to help if the tape keeps dropping at the back; it makes a big difference to accuracy."
+        ]
+      },
+      {
+        "key": "arms",
+        "label": "Arms",
+        "unit": "cm",
+        "where": "Around the thickest part of your upper arm, relaxed, halfway between shoulder and elbow.",
+        "steps": [
+          "Let your arm hang loose by your side, completely relaxed.",
+          "Find the midpoint between the tip of your shoulder and your elbow — that's usually the fullest part of the bicep.",
+          "Wrap the tape around at that point, keeping it perpendicular to the arm.",
+          "Measure the same arm each time (we suggest your dominant arm) and record it."
+        ],
+        "tips": [
+          "Always measure unflexed — flexed readings vary far more with effort and pump.",
+          "Don't measure straight after training arms; a pump can add a centimetre or more."
+        ]
+      },
+      {
+        "key": "legs",
+        "label": "Legs",
+        "unit": "cm",
+        "where": "Around the thickest part of your thigh, standing, just below the glute crease.",
+        "steps": [
+          "Stand with your feet about shoulder-width apart and your weight evenly split between both legs.",
+          "Find the widest part of your thigh, usually a few centimetres below where your glute meets your leg.",
+          "Wrap the tape around the thigh, keeping it level all the way round.",
+          "Measure the same leg each time and record it."
+        ],
+        "tips": [
+          "Don't stand with all your weight on the measured leg — it changes the muscle shape.",
+          "Measure before training, not after; a leg session leaves your quads swollen for hours."
+        ]
+      }
+    ]
+  },
+  "coach": {
+    "sidebar": {
+      "brand": "FitCoach",
+      "navDashboard": "Dashboard",
+      "navClients": "Clients",
+      "navProgrammes": "Programmes",
+      "navWorkouts": "Workouts",
+      "navExercises": "Exercises"
+    },
+    "dashboard": {
+      "title": "Dashboard",
+      "unknownClient": "Unknown client",
+      "vsLastWeek": "{delta} vs last week",
+      "loggedWorkout": "Logged {workoutName}",
+      "submittedCheckIn": "Submitted check-in",
+      "statTotalClients": "Total Clients",
+      "statTotalClientsSub": "On your roster",
+      "statWorkoutsLogged": "Workouts Logged",
+      "statCheckIns": "Check-ins",
+      "statActiveThisWeek": "Active This Week",
+      "statActiveThisWeekSub": "Logged a workout or check-in",
+      "clientsTitle": "Clients",
+      "viewAll": "View all",
+      "lastActiveToday": "Today",
+      "lastActiveYesterday": "Yesterday",
+      "lastActiveDaysAgo": "{days}d ago",
+      "noClients": "No clients yet. Clients appear here once they create an account.",
+      "recentActivityTitle": "Recent Activity",
+      "activityWorkout": "Workout",
+      "activityCheckIn": "Check-in",
+      "noActivity": "No activity yet."
+    },
+    "clients": {
+      "title": "Clients",
+      "activeClientCountOne": "{count} active client",
+      "activeClientCountOther": "{count} active clients",
+      "searchPlaceholder": "Search clients…",
+      "joined": "Joined {date}",
+      "noClients": "No clients yet. Clients appear here once they create an account.",
+      "noMatches": "No clients match your search."
+    },
+    "clientDetail": {
+      "backToDashboard": "Back to dashboard",
+      "joined": "Joined {date}",
+      "assignedProgrammeTitle": "Assigned Programme",
+      "edit": "Edit",
+      "workoutsPerCycle": "{count} workouts per cycle",
+      "exerciseCount": "{count} exercises",
+      "noProgramme": "No programme assigned yet.",
+      "recentWorkoutsTitle": "Recent Workouts",
+      "statusCompleted": "Completed",
+      "statusInProgress": "In Progress",
+      "setWithWeight": "{weight}kg × {reps}",
+      "setRepsOnly": "{reps} reps",
+      "noWorkouts": "No workouts logged yet.",
+      "recentCheckInsTitle": "Recent Check-ins",
+      "checkInEnergy": "Energy",
+      "checkInSleep": "Sleep",
+      "checkInNutrition": "Nutrition",
+      "noCheckIns": "No check-ins yet.",
+      "measurementsTitle": "Measurements",
+      "measurementWeight": "Weight",
+      "measurementWaist": "Waist",
+      "measurementHips": "Hips",
+      "measurementChest": "Chest",
+      "measurementArms": "Arms",
+      "measurementLegs": "Legs",
+      "progressPhotosTitle": "Progress Photos",
+      "progressPhotoAlt": "Progress photo from {date}",
+      "noPhotos": "No photos yet.",
+      "notesTitle": "Notes",
+      "noNotes": "No notes yet."
+    },
+    "programmes": {
+      "title": "Programmes",
+      "libraryCountOne": "{count} programme in your library",
+      "libraryCountOther": "{count} programmes in your library",
+      "newProgramme": "New programme",
+      "created": "Created {date}",
+      "phase": "Phase {phase}",
+      "exerciseCount": "{count} exercises",
+      "clientCountOne": "{count} client",
+      "clientCountOther": "{count} clients",
+      "edit": "Edit",
+      "empty": "No programmes yet."
+    },
+    "assignProgramme": {
+      "assign": "Assign",
+      "assignNew": "Assign a new programme",
+      "replaceWarning": "Replaces the current programme — customisations to it will no longer apply. Logged workout history is kept.",
+      "noTemplates": "No templates in your library."
+    },
+    "addNote": {
+      "add": "+ Add",
+      "placeholder": "Private note about this client…",
+      "saving": "Saving…",
+      "save": "Save note",
+      "cancel": "Cancel"
+    },
+    "duplicateProgramme": {
+      "copySuffix": "{name} (copy)",
+      "couldNotDuplicateProgramme": "Could not duplicate programme.",
+      "couldNotDuplicateWorkouts": "Could not duplicate workouts.",
+      "duplicating": "Duplicating…",
+      "duplicate": "Duplicate"
+    },
+    "deleteProgramme": {
+      "delete": "Delete",
+      "confirm": "Confirm delete",
+      "cancel": "Cancel"
+    }
+  },
+  "editors": {
+    "programme": {
+      "backToClient": "Back to {name}",
+      "backToProgrammes": "Back to programmes",
+      "defaultWorkoutName": "Workout {n}",
+      "validationWorkoutName": "Workout {n} needs a name.",
+      "validationProgrammeName": "Programme name is required.",
+      "validationNoExercises": "Add at least one exercise to \"{name}\" first.",
+      "errorSaveCommon": "Could not save the common workout.",
+      "errorCreateClientProgramme": "Could not create the client's programme.",
+      "errorCreateProgramme": "Could not create programme.",
+      "errorSaveWorkout": "Could not save workout.",
+      "titleAssign": "Assign Programme",
+      "titleEdit": "Edit Programme",
+      "titleNew": "New Programme",
+      "introAssign": "Prepopulated from the template — tweak anything for {name} before assigning. The template itself is not changed.",
+      "introOwner": "{name}'s personal copy — edits don't affect the template or other clients.",
+      "introTemplate": "Template — assigning it gives each client their own editable copy.",
+      "programmeNameAriaLabel": "Programme name",
+      "programmeNamePlaceholder": "Programme name *",
+      "phaseLabel": "Phase",
+      "phasePlaceholder": "e.g. 1",
+      "workoutNameAriaLabel": "Workout name",
+      "workoutNamePlaceholder": "Workout name *",
+      "saveAsCommonPristineTitle": "This is an unchanged common workout.",
+      "saveAsCommonTitle": "Store this workout in the library to reuse in other programmes.",
+      "saving": "Saving…",
+      "savedAsCommon": "Saved as common",
+      "saveAsCommon": "Save as common",
+      "removeWorkoutAriaLabel": "Remove workout {n}",
+      "addWorkoutHeading": "Add a workout",
+      "addWorkoutIntro": "Start from scratch, or pick one of your common workouts.",
+      "cancel": "Cancel",
+      "customWorkout": "Custom workout",
+      "exerciseCountOne": "· {count} exercise",
+      "exerciseCountOther": "· {count} exercises",
+      "noCommonWorkouts": "No common workouts yet — use “Save as common” on any workout to add one.",
+      "addWorkout": "Add workout",
+      "assignTo": "Assign to {name}",
+      "saveProgramme": "Save programme",
+      "createProgramme": "Create programme",
+      "deleteWarning": "Deletes the template and its workouts. Client copies are unaffected.",
+      "confirmDelete": "Confirm delete",
+      "deleteProgramme": "Delete programme"
+    },
+    "workoutExercises": {
+      "validationChooseExercise": "Choose an exercise for every row in \"{where}\".",
+      "validationSetReps": "Every set needs at least 1 rep in \"{where}\".",
+      "validationSetsAndReps": "Sets and reps must be at least 1 in \"{where}\".",
+      "columnExercise": "Exercise",
+      "columnSets": "Sets",
+      "columnReps": "Reps",
+      "columnWeight": "Weight",
+      "columnRest": "Rest (s)",
+      "columnNotes": "Notes",
+      "exerciseAriaLabel": "Exercise",
+      "exercisePlaceholder": "Choose exercise…",
+      "bodyweightHint": "{muscleGroup} · bodyweight",
+      "setsAriaLabel": "Sets",
+      "repsAriaLabel": "Reps",
+      "varies": "varies",
+      "bodyweightTitle": "Bodyweight exercise",
+      "weightAriaLabel": "Weight kg",
+      "weightPlaceholder": "kg",
+      "restAriaLabel": "Rest seconds",
+      "notesAriaLabel": "Exercise notes",
+      "notesPlaceholder": "Notes",
+      "moveUpAriaLabel": "Move exercise up",
+      "moveDownAriaLabel": "Move exercise down",
+      "removeAriaLabel": "Remove exercise",
+      "setLabel": "Set {n}",
+      "setRepsAriaLabel": "Set {n} reps",
+      "setWeightAriaLabel": "Set {n} weight",
+      "repsUnit": "reps",
+      "kgUnit": "kg",
+      "sameEverySet": "Same every set",
+      "varyPerSet": "Vary per set",
+      "addExercise": "Add exercise"
+    },
+    "commonWorkout": {
+      "validationName": "Workout name is required.",
+      "validationNoExercises": "Add at least one exercise.",
+      "errorSave": "Could not save workout.",
+      "backToWorkouts": "Back to workouts",
+      "titleEdit": "Edit Workout",
+      "titleNew": "New Workout",
+      "intro": "Common workout — pick it from “Add workout” in any programme. Programmes that already use it keep their own copy.",
+      "nameAriaLabel": "Workout name",
+      "namePlaceholder": "Workout name *",
+      "saving": "Saving…",
+      "saveWorkout": "Save workout",
+      "createWorkout": "Create workout",
+      "cancel": "Cancel",
+      "deleteWarning": "Removes it from the library. Programmes keep their copies.",
+      "confirmDelete": "Confirm delete",
+      "deleteWorkout": "Delete workout"
+    },
+    "workoutLibrary": {
+      "title": "Workouts",
+      "countOne": "{count} common workout to drop into programmes",
+      "countOther": "{count} common workouts to drop into programmes",
+      "newWorkout": "New workout",
+      "exerciseCountOne": "{count} exercise",
+      "exerciseCountOther": "{count} exercises",
+      "deleteWarning": "Programmes keep their copies.",
+      "confirmDelete": "Confirm delete",
+      "cancel": "Cancel",
+      "edit": "Edit",
+      "delete": "Delete",
+      "empty": "No common workouts yet. Create one here, or use “Save as common” on a workout in any programme."
+    },
+    "exerciseLibrary": {
+      "formTitleEdit": "Edit exercise",
+      "formTitleNew": "New exercise",
+      "namePlaceholder": "Name *",
+      "muscleGroupPlaceholder": "Muscle group *",
+      "instructionsPlaceholder": "Instructions",
+      "videoUrlPlaceholder": "Video URL",
+      "alternativesPlaceholder": "Alternatives (comma-separated)",
+      "usesWeightsLabel": "Uses weights — uncheck for bodyweight exercises (reps only)",
+      "saving": "Saving…",
+      "saveExercise": "Save exercise",
+      "cancel": "Cancel",
+      "title": "Exercise Library",
+      "countOne": "{count} exercise",
+      "countOther": "{count} exercises",
+      "addExercise": "Add exercise",
+      "filterAll": "All",
+      "bodyweightBadge": "Bodyweight",
+      "alternativesLabel": "Alternatives:",
+      "video": "Video",
+      "edit": "Edit",
+      "confirmDelete": "Confirm delete",
+      "delete": "Delete",
+      "deleteBlockedTitleOne": "Used in {count} workout — remove it from them first.",
+      "deleteBlockedTitleOther": "Used in {count} workouts — remove it from them first.",
+      "deleteTitle": "Delete this exercise",
+      "usedInOne": "Used in {count} workout, so it can't be deleted.",
+      "usedInOther": "Used in {count} workouts, so it can't be deleted.",
+      "empty": "No exercises yet. Add your first exercise to build the library."
+    }
+  },
+  "client": {
+    "common": {
+      "back": "Back",
+      "saving": "Saving…",
+      "exerciseCount": "{count} exercises",
+      "restSuffix": "{seconds}s rest",
+      "setWeighted": "{weight}kg × {reps}",
+      "setBodyweight": "{reps} reps"
+    },
+    "nav": {
+      "workouts": "Workouts",
+      "progress": "Progress",
+      "photos": "Photos",
+      "profile": "Profile"
+    },
+    "measurementLabels": {
+      "weight": "Weight",
+      "waist": "Waist",
+      "hips": "Hips",
+      "chest": "Chest",
+      "arms": "Arms",
+      "legs": "Legs"
+    },
+    "home": {
+      "greeting": "{greeting} 👋",
+      "streak": "{count} day streak",
+      "workoutsThisWeekOne": "{count} workout this week",
+      "workoutsThisWeekOther": "{count} workouts this week",
+      "phaseBadge": "Phase {phase}",
+      "activeBadge": "Active",
+      "startsWith": "starts with {name}",
+      "inProgressBadge": "In progress",
+      "doneBadge": "Done",
+      "noProgrammeTitle": "No programme assigned yet",
+      "noProgrammeBody": "Your coach will assign your training programme shortly.",
+      "recentWorkoutsTitle": "Recent Workouts",
+      "completedStatus": "Completed",
+      "inProgressStatus": "In progress"
+    },
+    "progress": {
+      "title": "Progress",
+      "subtitle": "Track your journey",
+      "measurementsTitle": "Measurements",
+      "howToMeasure": "How to measure",
+      "latest": "Latest — {date}",
+      "vsLast": "{diff} {unit} vs last",
+      "history": "History",
+      "noMeasurements": "No measurements logged yet.",
+      "firstTimeBefore": "First time?",
+      "firstTimeLink": "See how to take each measurement",
+      "firstTimeAfter": "so your numbers are comparable week to week.",
+      "strengthTitle": "Strength Progress",
+      "noWorkouts": "No workouts logged yet."
+    },
+    "profile": {
+      "title": "Profile",
+      "since": "Since {date}",
+      "currentProgramme": "Current Programme",
+      "workoutsPerCycle": "{count} workouts/cycle",
+      "activeBadge": "Active",
+      "checkinTitle": "Weekly Check-in",
+      "checkinSubtitle": "Let your coach know how you're doing",
+      "signOut": "Sign out"
+    },
+    "checkin": {
+      "title": "Weekly Check-in",
+      "subtitle": "Rate each area from 1 (bad) to 10 (great)",
+      "previousTitle": "Previous Check-ins",
+      "energy": "Energy",
+      "sleep": "Sleep",
+      "nutrition": "Nutrition"
+    },
+    "checkinForm": {
+      "energyLabel": "Energy levels",
+      "energyDesc": "How energetic do you feel?",
+      "sleepLabel": "Sleep quality",
+      "sleepDesc": "How well did you sleep this week?",
+      "nutritionLabel": "Nutrition",
+      "nutritionDesc": "How well did you eat this week?",
+      "scaleLow": "1 — Poor",
+      "scaleHigh": "10 — Great",
+      "submittedTitle": "Check-in submitted!",
+      "submittedBody": "Your coach will review this shortly.",
+      "viewHistory": "View history",
+      "notesLabel": "Any notes for your coach? (optional)",
+      "notesPlaceholder": "Feeling great this week, sleep has improved…",
+      "submitting": "Submitting…",
+      "submit": "Submit Check-in"
+    },
+    "photos": {
+      "title": "Progress Photos",
+      "subtitle": "Visual progress over time",
+      "photoAlt": "Progress photo from {date}",
+      "empty": "No photos yet. Upload your first progress photo above.",
+      "privacy": "Photos are private and only visible to you and your coach."
+    },
+    "photoUpload": {
+      "title": "Upload a progress photo",
+      "subtitle": "Front, side, or back view",
+      "uploading": "Uploading…",
+      "choose": "Choose photo"
+    },
+    "workout": {
+      "summary": "{programme} · {count} exercises",
+      "warmupTitle": "Warm up first 🔥",
+      "warmupBody": "5 min light cardio + general movement to feel how the body responds.",
+      "todaysExercises": "Today's exercises",
+      "anyOrder": "Any order works",
+      "setsByReps": "{sets} × {reps}",
+      "begin": "Begin workout"
+    },
+    "workoutLogger": {
+      "markAllDone": "Mark all {name} sets done",
+      "exerciseSummary": "{sets} sets × {reps} reps · {muscleGroup}",
+      "coachNote": "Coach note:",
+      "lastSession": "Last session:",
+      "colSet": "Set",
+      "colPrev": "Prev.",
+      "colWeight": "Weight",
+      "colReps": "Reps",
+      "prevWeight": "{weight}kg",
+      "prevReps": "× {reps}",
+      "setWeightLabel": "Set {n} weight",
+      "setRepsLabel": "Set {n} reps",
+      "howToDoThis": "How to do this",
+      "needAlternative": "Need an alternative?",
+      "videoTitle": "{name} technique video",
+      "watchVideo": "Watch technique video",
+      "saveWorkoutError": "Could not save workout.",
+      "saveExerciseError": "Could not save exercise log.",
+      "progress": "{done} of {total} done",
+      "complete": "Complete Workout",
+      "confirmTitle": "You haven't completed all your exercises",
+      "confirmNoneDone": "Nothing is marked done yet.",
+      "confirmSomeDone": "{done} of {total} exercises are done.",
+      "confirmQuestion": "Are you sure you want to finish the workout?",
+      "confirmYes": "Yes, finish workout",
+      "keepGoing": "Keep going"
+    },
+    "measurementForm": {
+      "logButton": "Log",
+      "title": "Log measurements",
+      "helpLabel": "How to measure {label}",
+      "howToMeasure": "How to measure",
+      "save": "Save",
+      "cancel": "Cancel"
+    }
+  }
+}

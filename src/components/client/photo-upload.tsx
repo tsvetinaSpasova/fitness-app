@@ -4,6 +4,9 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import { Camera } from "lucide-react";
+import { copy } from "@/lib/copy";
+
+const t = copy.client.photoUpload;
 
 export function PhotoUpload({ clientId }: { clientId: string }) {
   const router = useRouter();
@@ -46,8 +49,8 @@ export function PhotoUpload({ clientId }: { clientId: string }) {
   return (
     <div className="bg-blue-50 border-2 border-dashed border-blue-200 rounded-xl flex flex-col items-center justify-center py-8 mb-5">
       <Camera size={28} className="text-blue-400 mb-2" />
-      <p className="text-sm font-semibold text-blue-700">Upload a progress photo</p>
-      <p className="text-xs text-blue-500 mt-0.5">Front, side, or back view</p>
+      <p className="text-sm font-semibold text-blue-700">{t.title}</p>
+      <p className="text-xs text-blue-500 mt-0.5">{t.subtitle}</p>
       <input
         ref={inputRef}
         type="file"
@@ -60,7 +63,7 @@ export function PhotoUpload({ clientId }: { clientId: string }) {
         }}
       />
       <Button size="sm" className="mt-3" onClick={() => inputRef.current?.click()} disabled={uploading}>
-        {uploading ? "Uploading…" : "Choose photo"}
+        {uploading ? t.uploading : t.choose}
       </Button>
       {error && <p className="text-xs text-red-600 mt-2">{error}</p>}
     </div>

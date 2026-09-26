@@ -3,6 +3,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
+import { copy } from "@/lib/copy";
+
+const t = copy.coach.addNote;
 
 export function AddNoteForm({ clientId }: { clientId: string }) {
   const router = useRouter();
@@ -33,7 +36,7 @@ export function AddNoteForm({ clientId }: { clientId: string }) {
   if (!open) {
     return (
       <Button size="sm" variant="ghost" onClick={() => setOpen(true)}>
-        + Add
+        {t.add}
       </Button>
     );
   }
@@ -43,7 +46,7 @@ export function AddNoteForm({ clientId }: { clientId: string }) {
       <textarea
         value={content}
         onChange={(e) => setContent(e.target.value)}
-        placeholder="Private note about this client…"
+        placeholder={t.placeholder}
         rows={3}
         autoFocus
         className="w-full text-sm text-slate-700 border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
@@ -51,10 +54,10 @@ export function AddNoteForm({ clientId }: { clientId: string }) {
       {error && <p className="text-xs text-red-600 mt-1">{error}</p>}
       <div className="flex gap-2 mt-2">
         <Button size="sm" onClick={save} disabled={saving || !content.trim()}>
-          {saving ? "Saving…" : "Save note"}
+          {saving ? t.saving : t.save}
         </Button>
         <Button size="sm" variant="ghost" onClick={() => setOpen(false)}>
-          Cancel
+          {t.cancel}
         </Button>
       </div>
     </div>

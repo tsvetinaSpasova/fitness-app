@@ -2,6 +2,7 @@
 import { useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Check, ChevronsUpDown } from "lucide-react";
+import { copy } from "@/lib/copy";
 
 export interface ComboboxOption {
   value: string;
@@ -122,7 +123,7 @@ export function Combobox({
             </button>
           ))}
           {filtered.length === 0 && (
-            <p className="px-3 py-2 text-sm text-slate-500">No matches</p>
+            <p className="px-3 py-2 text-sm text-slate-500">{copy.ui.combobox.noMatches}</p>
           )}
         </div>
       )}

@@ -11,10 +11,13 @@ import {
   WorkoutExercisesEditor,
   type ExerciseDraft,
 } from "@/components/coach/workout-exercises-editor";
+import { copy } from "@/lib/copy";
 import { createClient } from "@/lib/supabase/client";
 import type { Exercise, Workout } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { ArrowLeft, Trash2 } from "lucide-react";
+
+const t = copy.editors.commonWorkout;
 
 /** Create or edit one common (pre-made) workout in the library. */
 export function CommonWorkoutEditor({
@@ -36,9 +39,9 @@ export function CommonWorkoutEditor({
   async function save() {
     const trimmed = name.trim();
     const problem = !trimmed
-      ? "Workout name is required."
+      ? t.validationName
       : (validateExerciseDrafts(drafts, trimmed) ??
-        (drafts.length === 0 ? "Add at least one exercise." : null));
+        (drafts.length === 0 ? t.validationNoExercises : null));
     if (problem) {
       setError(problem);
       return;
@@ -65,7 +68,7 @@ export function CommonWorkoutEditor({
         .select("id")
         .single();
       if (iError || !data) {
-        setError(iError?.message ?? "Could not save workout.");
+        setError(iError?.message ?? t.errorSave);
         setSaving(false);
         return;
       }
@@ -115,23 +118,20 @@ export function CommonWorkoutEditor({
         href="/coach/workouts"
         className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800 mb-5 transition-colors"
       >
-        <ArrowLeft size={15} /> Back to workouts
+        <ArrowLeft size={15} /> {t.backToWorkouts}
       </Link>
 
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-slate-900">
-          {initial ? "Edit Workout" : "New Workout"}
+          {initial ? t.titleEdit : t.titleNew}
         </h1>
-        <p className="text-slate-500 text-sm mt-0.5">
-          Common workout — pick it from &ldquo;Add workout&rdquo; in any programme. Programmes that
-          already use it keep their own copy.
-        </p>
+        <p className="text-slate-500 text-sm mt-0.5">{t.intro}</p>
       </div>
 
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
         <input
-          aria-label="Workout name"
-          placeholder="Workout name *"
+          aria-label={t.nameAriaLabel}
+          placeholder={t.namePlaceholder}
           value={name}
           onChange={(e) => setName(e.target.value)}
           className={cn(inputClass, "w-full font-medium mb-4")}
@@ -143,25 +143,23 @@ export function CommonWorkoutEditor({
         {error && <p className="text-sm text-red-600 mb-3">{error}</p>}
         <div className="flex items-center gap-3">
           <Button onClick={save} disabled={saving}>
-            {saving ? "Saving…" : initial ? "Save workout" : "Create workout"}
+            {saving ? t.saving : initial ? t.saveWorkout : t.createWorkout}
           </Button>
           <Link href="/coach/workouts" className="text-sm text-slate-500 hover:text-slate-800">
-            Cancel
+            {t.cancel}
           </Link>
           {initial && (
             <div className="ml-auto flex items-center gap-2">
               {confirmingDelete && (
-                <span className="text-xs text-slate-500">
-                  Removes it from the library. Programmes keep their copies.
-                </span>
+                <span className="text-xs text-slate-500">{t.deleteWarning}</span>
               )}
               {confirmingDelete ? (
                 <Button size="sm" variant="secondary" onClick={remove} disabled={saving}>
-                  <Trash2 size={13} className="text-red-500" /> Confirm delete
+                  <Trash2 size={13} className="text-red-500" /> {t.confirmDelete}
                 </Button>
               ) : (
                 <Button size="sm" variant="ghost" onClick={() => setConfirmingDelete(true)}>
-                  <Trash2 size={13} className="text-red-500" /> Delete workout
+                  <Trash2 size={13} className="text-red-500" /> {t.deleteWorkout}
                 </Button>
               )}
             </div>

@@ -5,6 +5,9 @@ import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import type { Programme } from "@/lib/types";
 import { Copy } from "lucide-react";
+import { copy, fill } from "@/lib/copy";
+
+const t = copy.coach.duplicateProgramme;
 
 /** Copies a template programme (with workouts and exercises) into a new template. */
 export function DuplicateProgramme({ programme }: { programme: Programme }) {
@@ -19,11 +22,11 @@ export function DuplicateProgramme({ programme }: { programme: Programme }) {
 
     const { data: newProgramme, error: pError } = await supabase
       .from("programmes")
-      .insert({ name: `${programme.name} (copy)`, phase: programme.phase ?? null })
+      .insert({ name: fill(t.copySuffix, { name: programme.name }), phase: programme.phase ?? null })
       .select("id")
       .single();
     if (pError || !newProgramme) {
-      setError(pError?.message ?? "Could not duplicate programme.");
+      setError(pError?.message ?? t.couldNotDuplicateProgramme);
       setBusy(false);
       return;
     }
@@ -39,7 +42,7 @@ export function DuplicateProgramme({ programme }: { programme: Programme }) {
         .select("id")
         .single();
       if (wError || !newWorkout) {
-        setError(wError?.message ?? "Could not duplicate workouts.");
+        setError(wError?.message ?? t.couldNotDuplicateWorkouts);
         setBusy(false);
         return;
       }
@@ -72,7 +75,7 @@ export function DuplicateProgramme({ programme }: { programme: Programme }) {
   return (
     <div>
       <Button size="sm" variant="ghost" onClick={duplicate} disabled={busy}>
-        <Copy size={13} /> {busy ? "Duplicating…" : "Duplicate"}
+        <Copy size={13} /> {busy ? t.duplicating : t.duplicate}
       </Button>
       {error && <p className="text-xs text-red-600 mt-1">{error}</p>}
     </div>

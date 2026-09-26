@@ -3,6 +3,9 @@ import { notFound, redirect } from "next/navigation";
 import { getCurrentClient, getWorkoutWithProgramme } from "@/lib/data";
 import { repsLabel } from "@/lib/utils";
 import { ArrowLeft, Play } from "lucide-react";
+import { copy, fill } from "@/lib/copy";
+
+const t = copy.client.workout;
 
 /**
  * Workout preview: the whole session at a glance before anything is logged.
@@ -31,20 +34,18 @@ export default async function WorkoutPreviewPage({
           href="/client"
           className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800 mb-3 transition-colors"
         >
-          <ArrowLeft size={15} /> Back
+          <ArrowLeft size={15} /> {copy.client.common.back}
         </Link>
         <h1 className="text-lg font-bold text-slate-900">{workout.name}</h1>
         <p className="text-sm text-slate-500">
-          {programmeName} · {workout.exercises.length} exercises
+          {fill(t.summary, { programme: programmeName, count: workout.exercises.length })}
         </p>
       </div>
 
       <div className="px-4 py-4 space-y-3">
         <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
-          <p className="text-sm font-semibold text-amber-800">Warm up first 🔥</p>
-          <p className="text-xs text-amber-700 mt-0.5">
-            5 min light cardio + general movement to feel how the body responds.
-          </p>
+          <p className="text-sm font-semibold text-amber-800">{t.warmupTitle}</p>
+          <p className="text-xs text-amber-700 mt-0.5">{t.warmupBody}</p>
         </div>
 
         <div
@@ -52,8 +53,8 @@ export default async function WorkoutPreviewPage({
           className="bg-white rounded-xl border border-slate-200 shadow-sm px-4 py-3"
         >
           <div className="flex items-baseline justify-between mb-1">
-            <p className="text-sm font-semibold text-slate-900">Today&apos;s exercises</p>
-            <p className="text-xs text-slate-400">Any order works</p>
+            <p className="text-sm font-semibold text-slate-900">{t.todaysExercises}</p>
+            <p className="text-xs text-slate-400">{t.anyOrder}</p>
           </div>
           <ol className="divide-y divide-slate-100">
             {workout.exercises.map((we, i) => (
@@ -69,11 +70,12 @@ export default async function WorkoutPreviewPage({
                   <p className="text-sm font-medium text-slate-800 truncate">{we.exercise.name}</p>
                   <p className="text-xs text-slate-500">
                     {we.exercise.muscleGroup}
-                    {we.restSeconds != null && ` · ${we.restSeconds}s rest`}
+                    {we.restSeconds != null &&
+                      ` · ${fill(copy.client.common.restSuffix, { seconds: we.restSeconds })}`}
                   </p>
                 </div>
                 <span className="text-sm font-semibold text-slate-700 shrink-0">
-                  {we.sets} × {repsLabel(we)}
+                  {fill(t.setsByReps, { sets: we.sets, reps: repsLabel(we) })}
                 </span>
               </li>
             ))}
@@ -85,7 +87,7 @@ export default async function WorkoutPreviewPage({
             href={`/client/workout/${workout.id}/start`}
             className="w-full inline-flex items-center justify-center gap-2 font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-base px-6 py-3 transition-colors"
           >
-            <Play size={18} /> Begin workout
+            <Play size={18} /> {t.begin}
           </Link>
         </div>
       </div>

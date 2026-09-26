@@ -5,9 +5,11 @@ import { StatCard } from "@/components/ui/stat-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getCheckIns, getClients, getWorkoutLogs } from "@/lib/data";
 import { daysSince, isWithinDays } from "@/lib/utils";
+import { copy, fill } from "@/lib/copy";
 import { Users, Activity, ClipboardCheck, TrendingUp, ChevronRight } from "lucide-react";
 
 export default async function CoachDashboard() {
+  const t = copy.coach.dashboard;
   const [clients, logs, checkIns] = await Promise.all([
     getClients(),
     getWorkoutLogs(undefined, 100),
@@ -15,7 +17,7 @@ export default async function CoachDashboard() {
   ]);
 
   const clientName = (id: string) =>
-    clients.find((c) => c.id === id)?.name ?? "Unknown client";
+    clients.find((c) => c.id === id)?.name ?? t.unknownClient;
 
   const logsThisWeek = logs.filter((l) => isWithinDays(l.loggedAt, 7));
   const logsLastWeek = logs.filter(
@@ -33,19 +35,19 @@ export default async function CoachDashboard() {
   const weekTrend = (curr: number, prev: number) =>
     curr > prev ? ("up" as const) : curr < prev ? ("down" as const) : ("neutral" as const);
   const weekSub = (curr: number, prev: number) =>
-    `${curr >= prev ? "+" : ""}${curr - prev} vs last week`;
+    fill(t.vsLastWeek, { delta: `${curr >= prev ? "+" : ""}${curr - prev}` });
 
   const recentActivity = [
     ...logs.map((l) => ({
       type: "workout" as const,
       clientName: clientName(l.clientId),
-      label: `Logged ${l.workoutName}`,
+      label: fill(t.loggedWorkout, { workoutName: l.workoutName }),
       time: l.loggedAt,
     })),
     ...checkIns.map((c) => ({
       type: "checkin" as const,
       clientName: clientName(c.clientId),
-      label: "Submitted check-in",
+      label: t.submittedCheckIn,
       time: c.date,
     })),
   ]
@@ -63,37 +65,37 @@ export default async function CoachDashboard() {
     <div className="p-6 max-w-5xl mx-auto">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-900">Dashboard</h1>
+        <h1 className="text-2xl font-bold text-slate-900">{t.title}</h1>
         <p className="text-slate-500 text-sm mt-0.5">{today}</p>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <StatCard
-          label="Total Clients"
+          label={t.statTotalClients}
           value={clients.length}
-          sub="On your roster"
+          sub={t.statTotalClientsSub}
           icon={<Users size={18} />}
           trend="neutral"
         />
         <StatCard
-          label="Workouts Logged"
+          label={t.statWorkoutsLogged}
           value={logsThisWeek.length}
           sub={weekSub(logsThisWeek.length, logsLastWeek.length)}
           icon={<Activity size={18} />}
           trend={weekTrend(logsThisWeek.length, logsLastWeek.length)}
         />
         <StatCard
-          label="Check-ins"
+          label={t.statCheckIns}
           value={checkInsThisWeek.length}
           sub={weekSub(checkInsThisWeek.length, checkInsLastWeek.length)}
           icon={<ClipboardCheck size={18} />}
           trend={weekTrend(checkInsThisWeek.length, checkInsLastWeek.length)}
         />
         <StatCard
-          label="Active This Week"
+          label={t.statActiveThisWeek}
           value={`${activeClientIds.size}/${clients.length}`}
-          sub="Logged a workout or check-in"
+          sub={t.statActiveThisWeekSub}
           icon={<TrendingUp size={18} />}
           trend={activeClientIds.size >= clients.length / 2 ? "up" : "down"}
         />
@@ -104,9 +106,9 @@ export default async function CoachDashboard() {
         <div className="lg:col-span-2">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Clients</CardTitle>
+              <CardTitle>{t.clientsTitle}</CardTitle>
               <Link href="/coach/clients" className="text-xs text-blue-600 hover:underline font-medium">
-                View all
+                {t.viewAll}
               </Link>
             </CardHeader>
             {clients.length > 0 ? (
@@ -126,7 +128,11 @@ export default async function CoachDashboard() {
                       </div>
                       <div className="text-right shrink-0">
                         <Badge variant={days <= 2 ? "success" : days <= 7 ? "blue" : "muted"}>
-                          {days === 0 ? "Today" : days === 1 ? "Yesterday" : `${days}d ago`}
+                          {days === 0
+                            ? t.lastActiveToday
+                            : days === 1
+                              ? t.lastActiveYesterday
+                              : fill(t.lastActiveDaysAgo, { days })}
                         </Badge>
                       </div>
                       <ChevronRight size={16} className="text-slate-300 group-hover:text-slate-500 transition-colors" />
@@ -136,9 +142,7 @@ export default async function CoachDashboard() {
               </div>
             ) : (
               <CardContent>
-                <p className="text-sm text-slate-500">
-                  No clients yet. Clients appear here once they create an account.
-                </p>
+                <p className="text-sm text-slate-500">{t.noClients}</p>
               </CardContent>
             )}
           </Card>
@@ -148,7 +152,7 @@ export default async function CoachDashboard() {
         <div>
           <Card>
             <CardHeader>
-              <CardTitle>Recent Activity</CardTitle>
+              <CardTitle>{t.recentActivityTitle}</CardTitle>
             </CardHeader>
             <CardContent className="px-0 py-0">
               {recentActivity.length > 0 ? (
@@ -161,13 +165,13 @@ export default async function CoachDashboard() {
                         <p className="text-xs text-slate-500 mt-0.5">{item.label}</p>
                       </div>
                       <Badge variant={item.type === "workout" ? "blue" : "success"}>
-                        {item.type === "workout" ? "Workout" : "Check-in"}
+                        {item.type === "workout" ? t.activityWorkout : t.activityCheckIn}
                       </Badge>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-slate-500 px-5 py-4">No activity yet.</p>
+                <p className="text-sm text-slate-500 px-5 py-4">{t.noActivity}</p>
               )}
             </CardContent>
           </Card>

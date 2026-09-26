@@ -5,6 +5,9 @@ import type { Exercise, Workout } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { ArrowDown, ArrowUp, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { copy, fill } from "@/lib/copy";
+
+const t = copy.editors.workoutExercises;
 
 // The exercise list of one workout, shared by the programme editor and the
 // common-workout editor. Drafts hold input values as strings; parsing and
@@ -69,12 +72,12 @@ function resizePerSet(perSet: SetDraft[], count: number, fallbackReps: string): 
 /** First problem with the rows, or null; `where` names the workout in messages. */
 export function validateExerciseDrafts(drafts: ExerciseDraft[], where: string): string | null {
   for (const e of drafts) {
-    if (!e.exerciseId) return `Choose an exercise for every row in "${where}".`;
+    if (!e.exerciseId) return fill(t.validationChooseExercise, { where });
     if (e.perSet) {
       if (e.perSet.some((ps) => !(parseInt(ps.reps) > 0)))
-        return `Every set needs at least 1 rep in "${where}".`;
+        return fill(t.validationSetReps, { where });
     } else if (!(parseInt(e.sets) > 0) || !(parseInt(e.reps) > 0)) {
-      return `Sets and reps must be at least 1 in "${where}".`;
+      return fill(t.validationSetsAndReps, { where });
     }
   }
   return null;
@@ -136,12 +139,12 @@ export function WorkoutExercisesEditor({
     <>
       {value.length > 0 && (
         <div className="hidden sm:grid grid-cols-[1fr_3.5rem_3.5rem_4.5rem_4.5rem_1fr_5.5rem] gap-2 text-xs text-slate-400 font-medium mb-1.5 px-1">
-          <span>Exercise</span>
-          <span>Sets</span>
-          <span>Reps</span>
-          <span>Weight</span>
-          <span>Rest (s)</span>
-          <span>Notes</span>
+          <span>{t.columnExercise}</span>
+          <span>{t.columnSets}</span>
+          <span>{t.columnReps}</span>
+          <span>{t.columnWeight}</span>
+          <span>{t.columnRest}</span>
+          <span>{t.columnNotes}</span>
           <span />
         </div>
       )}
@@ -152,19 +155,19 @@ export function WorkoutExercisesEditor({
             <div key={eIdx} className="bg-slate-50 rounded-lg p-2">
               <div className="grid sm:grid-cols-[1fr_3.5rem_3.5rem_4.5rem_4.5rem_1fr_5.5rem] grid-cols-2 gap-2 items-center">
                 <Combobox
-                  ariaLabel="Exercise"
-                  placeholder="Choose exercise…"
+                  ariaLabel={t.exerciseAriaLabel}
+                  placeholder={t.exercisePlaceholder}
                   value={e.exerciseId}
                   onChange={(exerciseId) => update(eIdx, { exerciseId })}
                   options={library.map((ex) => ({
                     value: ex.id,
                     label: ex.name,
-                    hint: ex.requiresWeight ? ex.muscleGroup : `${ex.muscleGroup} · bodyweight`,
+                    hint: ex.requiresWeight ? ex.muscleGroup : fill(t.bodyweightHint, { muscleGroup: ex.muscleGroup }),
                   }))}
                   className="col-span-2 sm:col-span-1"
                 />
                 <input
-                  aria-label="Sets"
+                  aria-label={t.setsAriaLabel}
                   type="number"
                   min={1}
                   value={e.sets}
@@ -179,10 +182,10 @@ export function WorkoutExercisesEditor({
                   className={inputClass}
                 />
                 {e.perSet ? (
-                  <span className="text-xs text-slate-400 text-center">varies</span>
+                  <span className="text-xs text-slate-400 text-center">{t.varies}</span>
                 ) : (
                   <input
-                    aria-label="Reps"
+                    aria-label={t.repsAriaLabel}
                     type="number"
                     min={1}
                     value={e.reps}
@@ -191,25 +194,25 @@ export function WorkoutExercisesEditor({
                   />
                 )}
                 {!weighted ? (
-                  <span className="text-xs text-slate-400 text-center" title="Bodyweight exercise">
+                  <span className="text-xs text-slate-400 text-center" title={t.bodyweightTitle}>
                     —
                   </span>
                 ) : e.perSet ? (
-                  <span className="text-xs text-slate-400 text-center">varies</span>
+                  <span className="text-xs text-slate-400 text-center">{t.varies}</span>
                 ) : (
                   <input
-                    aria-label="Weight kg"
+                    aria-label={t.weightAriaLabel}
                     type="number"
                     min={0}
                     step="0.5"
-                    placeholder="kg"
+                    placeholder={t.weightPlaceholder}
                     value={e.weight}
                     onChange={(ev) => update(eIdx, { weight: ev.target.value })}
                     className={inputClass}
                   />
                 )}
                 <input
-                  aria-label="Rest seconds"
+                  aria-label={t.restAriaLabel}
                   type="number"
                   min={0}
                   placeholder="—"
@@ -218,15 +221,15 @@ export function WorkoutExercisesEditor({
                   className={inputClass}
                 />
                 <input
-                  aria-label="Exercise notes"
-                  placeholder="Notes"
+                  aria-label={t.notesAriaLabel}
+                  placeholder={t.notesPlaceholder}
                   value={e.notes}
                   onChange={(ev) => update(eIdx, { notes: ev.target.value })}
                   className={inputClass}
                 />
                 <div className="flex gap-1 justify-end">
                   <button
-                    aria-label="Move exercise up"
+                    aria-label={t.moveUpAriaLabel}
                     disabled={eIdx === 0}
                     onClick={() => move(eIdx, -1)}
                     className="p-1.5 rounded text-slate-400 hover:text-slate-700 disabled:opacity-30"
@@ -234,7 +237,7 @@ export function WorkoutExercisesEditor({
                     <ArrowUp size={14} />
                   </button>
                   <button
-                    aria-label="Move exercise down"
+                    aria-label={t.moveDownAriaLabel}
                     disabled={eIdx === value.length - 1}
                     onClick={() => move(eIdx, 1)}
                     className="p-1.5 rounded text-slate-400 hover:text-slate-700 disabled:opacity-30"
@@ -242,7 +245,7 @@ export function WorkoutExercisesEditor({
                     <ArrowDown size={14} />
                   </button>
                   <button
-                    aria-label="Remove exercise"
+                    aria-label={t.removeAriaLabel}
                     onClick={() => onChange(value.filter((_, j) => j !== eIdx))}
                     className="p-1.5 rounded text-red-400 hover:text-red-600"
                   >
@@ -256,9 +259,9 @@ export function WorkoutExercisesEditor({
                 <div className="mt-2 space-y-1.5 border-t border-slate-200 pt-2">
                   {e.perSet.map((ps, si) => (
                     <div key={si} className="flex items-center gap-2">
-                      <span className="text-xs text-slate-400 w-10 shrink-0">Set {si + 1}</span>
+                      <span className="text-xs text-slate-400 w-10 shrink-0">{fill(t.setLabel, { n: si + 1 })}</span>
                       <input
-                        aria-label={`Set ${si + 1} reps`}
+                        aria-label={fill(t.setRepsAriaLabel, { n: si + 1 })}
                         type="number"
                         min={1}
                         value={ps.reps}
@@ -271,11 +274,11 @@ export function WorkoutExercisesEditor({
                         }
                         className={cn(inputClass, "w-20")}
                       />
-                      <span className="text-xs text-slate-400">reps</span>
+                      <span className="text-xs text-slate-400">{t.repsUnit}</span>
                       {weighted && (
                         <>
                           <input
-                            aria-label={`Set ${si + 1} weight`}
+                            aria-label={fill(t.setWeightAriaLabel, { n: si + 1 })}
                             type="number"
                             min={0}
                             step="0.5"
@@ -290,7 +293,7 @@ export function WorkoutExercisesEditor({
                             }
                             className={cn(inputClass, "w-20")}
                           />
-                          <span className="text-xs text-slate-400">kg</span>
+                          <span className="text-xs text-slate-400">{t.kgUnit}</span>
                         </>
                       )}
                     </div>
@@ -310,7 +313,7 @@ export function WorkoutExercisesEditor({
                 }
                 className="mt-1.5 text-xs text-blue-600 font-medium hover:underline"
               >
-                {e.perSet ? "Same every set" : "Vary per set"}
+                {e.perSet ? t.sameEverySet : t.varyPerSet}
               </button>
             </div>
           );
@@ -323,7 +326,7 @@ export function WorkoutExercisesEditor({
         className="mt-3"
         onClick={() => onChange([...value, { ...NEW_EXERCISE }])}
       >
-        <Plus size={13} /> Add exercise
+        <Plus size={13} /> {t.addExercise}
       </Button>
     </>
   );
