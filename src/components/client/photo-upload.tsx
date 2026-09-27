@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import { Camera } from "lucide-react";
 import { copy } from "@/lib/copy";
+import { compressImage } from "@/lib/compress-image";
 
 const t = copy.client.photoUpload;
 
@@ -19,12 +20,12 @@ export function PhotoUpload({ clientId }: { clientId: string }) {
     setError(null);
     const supabase = createClient();
 
-    const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+    const { blob, ext, contentType } = await compressImage(file);
     const path = `${clientId}/${crypto.randomUUID()}.${ext}`;
 
     const { error: uploadError } = await supabase.storage
       .from("progress-photos")
-      .upload(path, file);
+      .upload(path, blob, { contentType });
     if (uploadError) {
       setError(uploadError.message);
       setUploading(false);
