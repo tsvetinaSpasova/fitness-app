@@ -37,18 +37,21 @@ New sign-ups from the login page always create **client** accounts; coach accoun
 
 ## Environments & deployment
 
-Two hosted Supabase projects (org `tsvetinaSpasova's Org`, region `eu-west-3`):
+The running services belong to the app's owner (Supabase org and Vercel team both named **DG Coaching**). The code stays in this repo.
 
 | Env | Supabase project | Used by |
 | --- | --- | --- |
-| Dev | `dgpt` (`eaagogwffqukuvuimcpk`) | local `npm run dev`, e2e tests, seeded demo data |
-| Prod | `fitness-app-prod` (`zyzptsshwqzbgzjafqef`) | Vercel deployment, real accounts only (no demo seed) |
+| Prod | `8dimitar's Project` (`lvvhcdffnojfmritptca`, `eu-west-1`) | the live site, real accounts only (no demo seed) |
+| Test | `fitcoach-test` (`jtukkwtraklzovuxvngi`, `eu-west-1`) | local `npm run dev`, e2e tests, seeded demo data |
 
-- The frontend deploys to **Vercel** (Hobby, project `fitness-app`, team `dgpt1`) from the `main` branch of [github.com/tsvetinaSpasova/fitness-app](https://github.com/tsvetinaSpasova/fitness-app); every push to `main` triggers a production deploy. Live at **https://fitness-app-coral-beta.vercel.app**.
-- Vercel's env vars (`NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY`) are scoped per environment: **Production** deploys use the prod Supabase project, **Preview** deploys (any non-`main` branch push) use the dev project — so pushing a branch gives a shareable preview URL running against dev data. `.env.local` keeps local dev on the dev project.
-- Schema changes: files in `supabase/migrations/` are applied to each environment via the Supabase SQL/query API (or `supabase db push`) — dev first, prod after the change ships.
-- Prod auth currently **auto-confirms** signups (Supabase's built-in mailer only delivers to team members). Set up custom SMTP and re-enable email confirmation before opening signups to strangers.
-- Signups always create client accounts; the prod coach account was created via the Auth admin API with `role: coach` metadata.
+- The frontend is the Vercel project `fitcoach` in team `dg-coaching` (Hobby). Live at **https://fitcoach-eosin-one.vercel.app**.
+- **Deploys run from GitHub Actions**, not Vercel's Git integration: `.github/workflows/deploy.yml` builds on every push to `main` (or a manual run) and uploads the prebuilt output with the Vercel CLI. Vercel cannot import a personal repo its account does not own, and Hobby rejects commits not authored by the team owner. The workflow needs the repo secrets `VERCEL_TOKEN`, `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID`. If the owner revokes the token, deploys fail until a new one is stored.
+- Production only. There are no preview deployments; the test project is never wired to Vercel.
+- Vercel holds `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` for the Production environment, and the workflow pulls them at build time. The key is the project's **publishable** key (`sb_publishable_…`). `.env.local` keeps local dev on the test project.
+- Schema changes: files in `supabase/migrations/` are applied to each environment via the Supabase SQL/query API (or `supabase db push`), test first, prod after the change ships.
+- Prod auth currently **auto-confirms** signups (Supabase's built-in mailer only delivers to team members). Set up custom SMTP and re-enable email confirmation before opening signups to strangers. If the site gets a custom domain, update the auth site URL and redirect allow-list to match.
+- Signups always create client accounts. To make a coach, have them sign up in the app, then set `role = 'coach'` on their `profiles` row.
+- Both Supabase projects are on the free tier: they pause after about a week without traffic and have no backups.
 
 ## Changing app text
 
