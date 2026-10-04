@@ -6,8 +6,8 @@ test.use({ storageState: { cookies: [], origins: [] } });
 test.describe("Login page", () => {
   test("renders logo, email and password fields", async ({ page }) => {
     await page.goto("/login");
-    // "FitCoach" appears in both the h1 and the footer; use role to target the heading
-    await expect(page.getByRole("heading", { name: "FitCoach" })).toBeVisible();
+    // "DG Coaching" appears in both the h1 and the footer; use role to target the heading
+    await expect(page.getByRole("heading", { name: "DG Coaching" })).toBeVisible();
     await expect(page.getByLabel("Email")).toBeVisible();
     await expect(page.getByLabel("Password")).toBeVisible();
   });

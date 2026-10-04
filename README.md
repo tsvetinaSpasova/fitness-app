@@ -1,4 +1,4 @@
-# FitCoach
+# DG Coaching
 
 An online fitness coaching platform built with Next.js (App Router) and Supabase.
 
@@ -42,9 +42,9 @@ The running services belong to the app's owner (Supabase org and Vercel team bot
 | Env | Supabase project | Used by |
 | --- | --- | --- |
 | Prod | `8dimitar's Project` (`lvvhcdffnojfmritptca`, `eu-west-1`) | the live site, real accounts only (no demo seed) |
-| Test | `fitcoach-test` (`jtukkwtraklzovuxvngi`, `eu-west-1`) | local `npm run dev`, e2e tests, seeded demo data |
+| Test | `dgcoaching-test` (`jtukkwtraklzovuxvngi`, `eu-west-1`) | local `npm run dev`, e2e tests, seeded demo data |
 
-- The frontend is the Vercel project `dg-coaching` in team `dg-coaching` (Hobby). Live at **https://dg-coaching.vercel.app**. "FitCoach" is only the internal name.
+- The frontend is the Vercel project `dg-coaching` in team `dg-coaching` (Hobby). Live at **https://dg-coaching.vercel.app**.
 - **Deploys run from GitHub Actions**, not Vercel's Git integration: `.github/workflows/deploy.yml` builds on every push to `main` (or a manual run) and uploads the prebuilt output with the Vercel CLI. Vercel cannot import a personal repo its account does not own, so the Git integration is not an option. The workflow needs the repo secrets `VERCEL_TOKEN`, `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID`. If the owner revokes the token, deploys fail until a new one is stored.
 - **This repo must stay public for deploys to work.** On the Hobby plan Vercel checks the commit author of every deployment from a private repo, CLI deploys included, and marks commits not authored by the team owner as `BLOCKED` (`TEAM_ACCESS_REQUIRED`). Public repos are exempt. Making the repo private again requires moving the Vercel team to Pro with the developer as a member.
 - Production only. There are no preview deployments; the test project is never wired to Vercel.

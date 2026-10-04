@@ -1,6 +1,6 @@
 # How to change the text in the app
 
-All the words you see in FitCoach (headings, buttons, labels, error messages,
+All the words you see in DG Coaching (headings, buttons, labels, error messages,
 the "How to measure" guide) live in one file:
 
 **`src/content/copy.json`**

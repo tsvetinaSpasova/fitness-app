@@ -1,10 +1,10 @@
 {
   "app": {
-    "title": "FitCoach",
+    "title": "DG Coaching",
     "description": "Online fitness coaching platform"
   },
   "login": {
-    "brandName": "FitCoach",
+    "brandName": "DG Coaching",
     "tagline": "Online coaching platform",
     "signIn": {
       "heading": "Welcome back",
@@ -27,7 +27,7 @@
       "emailLabel": "Email",
       "passwordLabel": "Password"
     },
-    "footer": "© 2026 FitCoach. All rights reserved."
+    "footer": "© 2026 DG Coaching. All rights reserved."
   },
   "ui": {
     "combobox": {
@@ -160,7 +160,7 @@
   },
   "coach": {
     "sidebar": {
-      "brand": "FitCoach",
+      "brand": "DG Coaching",
       "navDashboard": "Dashboard",
       "navClients": "Clients",
       "navProgrammes": "Programmes",

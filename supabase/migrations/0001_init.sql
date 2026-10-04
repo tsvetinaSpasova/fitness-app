@@ -1,4 +1,4 @@
--- FitCoach initial schema
+-- DG Coaching initial schema
 -- Run this in the Supabase dashboard: Project > SQL Editor > New query
 
 -- ---------------------------------------------------------------------------

@@ -1,4 +1,4 @@
--- Demo seed data for FitCoach.
+-- Demo seed data for DG Coaching.
 -- Idempotent: safe to run more than once.
 --
 -- Creates one demo coach and five demo clients (password for all: password123),
