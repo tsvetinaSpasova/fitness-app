@@ -8,7 +8,8 @@
 create extension if not exists pgcrypto with schema extensions;
 
 -- ---------------------------------------------------------------------------
--- auth users (profiles are created by the on_auth_user_created trigger)
+-- auth users (profiles are created by the on_auth_user_created trigger,
+-- always as clients; the demo coach is promoted right after)
 -- ---------------------------------------------------------------------------
 insert into auth.users (
   instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
@@ -30,6 +31,9 @@ from (values
   ('66666666-6666-6666-6666-666666666666'::uuid, 'olivia@example.com','Olivia Nkosi', 'client')
 ) as u(id, email, name, user_role)
 on conflict (id) do nothing;
+
+update public.profiles set role = 'coach'
+where id = '11111111-1111-1111-1111-111111111111';
 
 insert into auth.identities (
   id, user_id, provider_id, provider, identity_data,

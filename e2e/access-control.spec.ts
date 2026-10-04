@@ -94,3 +94,35 @@ test.describe("client role separation", () => {
     expect(response?.status()).toBe(404);
   });
 });
+
+test.describe("role escalation is blocked at the data layer", () => {
+  test("a client cannot promote themselves to coach", async () => {
+    // Talk to Supabase directly, as an attacker would from the browser
+    // console: the UI never offers this, so RLS + triggers must refuse it.
+    const olivia = await signInAs(OTHER_CLIENT.email, OTHER_CLIENT.password);
+    const id = await userId(olivia);
+
+    try {
+      const { error } = await olivia.from("profiles").update({ role: "coach" }).eq("id", id);
+      expect(error?.code).toBe("42501");
+
+      const { data: own } = await olivia.from("profiles").select("role").eq("id", id).single();
+      expect(own?.role).toBe("client");
+
+      // Still sees only her own profile, not the whole client list.
+      const { data: visible } = await olivia.from("profiles").select("id");
+      expect(visible?.map((p) => p.id)).toEqual([id]);
+    } finally {
+      // If the guard ever regresses, don't leave a rogue coach in the test data.
+      const coach = await signInAs(COACH.email, COACH.password);
+      await coach.from("profiles").update({ role: "client" }).eq("id", id);
+    }
+  });
+
+  test("a client can still edit the rest of their own profile", async () => {
+    const olivia = await signInAs(OTHER_CLIENT.email, OTHER_CLIENT.password);
+    const id = await userId(olivia);
+    const { error } = await olivia.from("profiles").update({ name: OTHER_CLIENT.name }).eq("id", id);
+    expect(error).toBeNull();
+  });
+});

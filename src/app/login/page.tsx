@@ -51,11 +51,12 @@ export default function LoginPage() {
     setInfo(null);
 
     const supabase = createClient();
-    // New sign-ups are always clients; coach accounts are created by an admin.
+    // New sign-ups are always clients (enforced by the database trigger);
+    // coach accounts are promoted by an admin.
     const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { name: name.trim(), role: "client" } },
+      options: { data: { name: name.trim() } },
     });
 
     if (signUpError) {
