@@ -8,9 +8,12 @@ import type {
   Client,
   CoachNote,
   Exercise,
+  InProgressLog,
   Measurement,
+  PreviousSets,
   Programme,
   ProgressPhoto,
+  SetLog,
   User,
   Workout,
   WorkoutLog,
@@ -291,9 +294,11 @@ export async function getWorkoutWithProgramme(
   return { workout: mapWorkout(row), programmeName: row.programmes.name };
 }
 
+/** Pass completedOnly for stats: an in_progress log is a workout not yet done. */
 export async function getWorkoutLogs(
   clientId?: string,
-  limit = 20
+  limit = 20,
+  { completedOnly = false }: { completedOnly?: boolean } = {}
 ): Promise<WorkoutLog[]> {
   const supabase = await createClient();
   let query = supabase
@@ -302,26 +307,76 @@ export async function getWorkoutLogs(
     .order("logged_at", { ascending: false })
     .limit(limit);
   if (clientId) query = query.eq("client_id", clientId);
+  if (completedOnly) query = query.eq("status", "completed");
   const { data } = await query;
   return ((data ?? []) as unknown as WorkoutLogNested[]).map(mapWorkoutLog);
 }
 
-/** Most recent completed log for one workout, with sets — the "last session" hint. */
-export async function getPreviousWorkoutLog(
+/** The client's unfinished run of one workout, for the logger to resume. */
+export async function getInProgressLog(
   clientId: string,
   workoutId: string
-): Promise<WorkoutLog | null> {
+): Promise<InProgressLog | null> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("workout_logs")
-    .select(WORKOUT_LOG_SELECT)
+    .select("id, draft")
     .eq("client_id", clientId)
     .eq("workout_id", workoutId)
-    .eq("status", "completed")
-    .order("logged_at", { ascending: false })
-    .limit(1)
+    .eq("status", "in_progress")
     .maybeSingle();
-  return data ? mapWorkoutLog(data as unknown as WorkoutLogNested) : null;
+  return data ? { id: data.id, draft: data.draft } : null;
+}
+
+// How many past logs of one exercise to search for a set number the latest
+// logs skipped. Older history than this is too stale to suggest.
+const PREVIOUS_LOGS_PER_EXERCISE = 10;
+
+/**
+ * What the client last did for each exercise, in any workout, for the
+ * logger's "last session" hint and Prev. column. History is matched per
+ * exercise, not per workout row, so it survives a skipped session and a
+ * programme re-assignment (which copies workouts under new ids).
+ */
+export async function getPreviousSetsByExercise(
+  clientId: string,
+  exerciseIds: string[]
+): Promise<Record<string, PreviousSets>> {
+  const supabase = await createClient();
+  const entries = await Promise.all(
+    [...new Set(exerciseIds)].map(async (exerciseId) => {
+      const { data } = await supabase
+        .from("exercise_logs")
+        .select("set_logs(set_number, reps, weight_kg), workout_logs!inner(logged_at)")
+        .eq("exercise_id", exerciseId)
+        .eq("workout_logs.client_id", clientId)
+        .eq("workout_logs.status", "completed")
+        .order("workout_logs(logged_at)", { ascending: false })
+        .limit(PREVIOUS_LOGS_PER_EXERCISE);
+      const logs = ((data ?? []) as unknown as {
+        set_logs: Pick<Tables["set_logs"]["Row"], "set_number" | "reps" | "weight_kg">[];
+      }[])
+        .map((l) =>
+          [...l.set_logs]
+            .sort((a, b) => a.set_number - b.set_number)
+            .map((s) => ({ setNumber: s.set_number, reps: s.reps, weightKg: s.weight_kg }))
+        )
+        .filter((sets) => sets.length > 0);
+      if (logs.length === 0) return null;
+
+      // Each set number comes from the newest log that has it, so a set
+      // skipped last time still shows what was done the time before.
+      const bySet: (SetLog | null)[] = [];
+      for (const sets of [...logs].reverse()) {
+        for (const s of sets) bySet[s.setNumber - 1] = s;
+      }
+      return [
+        exerciseId,
+        { lastSession: logs[0], bySet: Array.from(bySet, (s) => s ?? null) },
+      ] as const;
+    })
+  );
+  return Object.fromEntries(entries.filter((e) => e !== null));
 }
 
 export async function getCheckIns(

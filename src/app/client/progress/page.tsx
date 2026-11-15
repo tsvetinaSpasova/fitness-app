@@ -22,7 +22,7 @@ export default async function ProgressPage() {
 
   const [measurements, logs] = await Promise.all([
     getMeasurements(client.id),
-    getWorkoutLogs(client.id, 4),
+    getWorkoutLogs(client.id, 4, { completedOnly: true }),
   ]);
   const latest = measurements[0];
   const prev = measurements[1];

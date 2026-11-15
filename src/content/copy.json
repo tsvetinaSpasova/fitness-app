@@ -549,7 +549,10 @@
       "confirmSomeDone": "{done} of {total} exercises are done.",
       "confirmQuestion": "Are you sure you want to finish the workout?",
       "confirmYes": "Yes, finish workout",
-      "keepGoing": "Keep going"
+      "keepGoing": "Keep going",
+      "resumed": "Picked up where you left off.",
+      "startOver": "Start over",
+      "draftSaveError": "Couldn't save your progress. Check your connection; it will retry on your next change."
     },
     "measurementForm": {
       "logButton": "Log",

@@ -2,10 +2,10 @@ import { notFound, redirect } from "next/navigation";
 import { WorkoutLogger } from "@/components/client/workout-logger";
 import {
   getCurrentClient,
-  getPreviousWorkoutLog,
+  getInProgressLog,
+  getPreviousSetsByExercise,
   getWorkoutWithProgramme,
 } from "@/lib/data";
-import type { SetLog } from "@/lib/types";
 
 export default async function WorkoutPage({
   params,
@@ -21,14 +21,13 @@ export default async function WorkoutPage({
   const result = await getWorkoutWithProgramme(id);
   if (!result) notFound();
 
-  const previousLog = await getPreviousWorkoutLog(client.id, id);
-  const previousByExerciseId: Record<string, Pick<SetLog, "reps" | "weightKg">[]> = {};
-  for (const ex of previousLog?.exercises ?? []) {
-    previousByExerciseId[ex.exerciseId] = ex.sets.map((s) => ({
-      reps: s.reps,
-      weightKg: s.weightKg,
-    }));
-  }
+  const [previousByExerciseId, inProgressLog] = await Promise.all([
+    getPreviousSetsByExercise(
+      client.id,
+      result.workout.exercises.map((we) => we.exerciseId)
+    ),
+    getInProgressLog(client.id, id),
+  ]);
 
   return (
     <WorkoutLogger
@@ -36,6 +35,7 @@ export default async function WorkoutPage({
       programmeName={result.programmeName}
       clientId={client.id}
       previousByExerciseId={previousByExerciseId}
+      inProgressLog={inProgressLog}
     />
   );
 }

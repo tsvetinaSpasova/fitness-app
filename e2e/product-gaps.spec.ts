@@ -24,19 +24,6 @@ test.describe("Product gaps — coach flows", () => {
 });
 
 test.describe("Product gaps — client flows", () => {
-  test.fixme("client can save a workout as in-progress and resume it (FR-5.5)", async () => {
-    // The schema supports status 'in_progress' and the UI renders the badge,
-    // but the logger offers only Complete Workout — nothing ever creates an
-    // in-progress log.
-  });
-
-  test.fixme("client keeps last-session hints across programme phases (FR-5.2/FR-5.4)", async () => {
-    // Previous performance is looked up by workout_id. Re-assigning a
-    // programme creates a copy with NEW workout ids, so all "last session"
-    // hints silently disappear after a phase change even for identical
-    // exercises. History should be matched per exercise, not per workout row.
-  });
-
   test.fixme("measurement demo videos (FR-6.2)", async () => {
     // The written guide at /client/progress/how-to-measure is covered by
     // client-measurement-guide.spec.ts. Each guide has a videoUrl slot

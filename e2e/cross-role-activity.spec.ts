@@ -102,3 +102,20 @@ test("a client's logged workout appears on the coach's dashboard and client page
   await expect(page.getByText(new RegExp(`last session: 123\\.5kg × ${reps}`, "i"))).toBeVisible();
   await expect(page.locator('input[type="number"]').first()).toHaveValue("123.5");
 });
+
+test("an unfinished workout stays off the coach's dashboard", async ({ browser }) => {
+  const name = `${MARKER} unfinished`;
+  await emmaDb.from("workout_logs").insert({
+    client_id: emmaId,
+    workout_name: name,
+    programme_name: "E2E",
+    status: "in_progress",
+    draft: [],
+  });
+
+  const coach = await openCoachPage(browser);
+  await coach.page.goto("/coach");
+  await expect(coach.page.getByRole("heading", { name: /recent activity/i })).toBeVisible();
+  await expect(coach.page.getByText(name)).toHaveCount(0);
+  await coach.context.close();
+});

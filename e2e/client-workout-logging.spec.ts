@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { CLIENT, COACH } from "./credentials";
-import { signInAs } from "./db";
+import { signInAs, userId } from "./db";
 
 test.use({ storageState: CLIENT.storageState });
 
@@ -14,6 +14,35 @@ async function beginWorkout(page: Page, name: RegExp) {
   await expect(page).toHaveURL(/\/client\/workout\/[0-9a-f-]{36}\/start$/);
 }
 
+/**
+ * Delete Sarah's unfinished workouts. Ticking a set autosaves a draft, which
+ * the next test would otherwise resume.
+ */
+async function clearDrafts() {
+  const db = await signInAs(CLIENT.email, CLIENT.password);
+  await db.from("workout_logs").delete().eq("client_id", await userId(db)).eq("status", "in_progress");
+}
+
+/** Sarah's in_progress log for Workout A, once its draft has saved. */
+async function waitForDraft() {
+  const db = await signInAs(CLIENT.email, CLIENT.password);
+  const id = await userId(db);
+  let row: { id: string; draft: unknown } | null = null;
+  await expect
+    .poll(async () => {
+      const { data } = await db
+        .from("workout_logs")
+        .select("id, draft")
+        .eq("client_id", id)
+        .eq("status", "in_progress")
+        .maybeSingle();
+      row = data;
+      return Boolean(data?.draft);
+    })
+    .toBe(true);
+  return row!;
+}
+
 /** Cards start collapsed; open one by name and return its locator. */
 async function openExercise(page: Page, name: string) {
   const card = page.getByTestId("exercise-card").filter({ hasText: name });
@@ -23,7 +52,10 @@ async function openExercise(page: Page, name: string) {
 }
 
 test.describe("Client — workout logging", () => {
+  test.afterEach(clearDrafts);
+
   test.beforeEach(async ({ page }) => {
+    await clearDrafts();
     await beginWorkout(page, /Workout A — Lower Focus/);
     await expect(page.getByRole("heading", { name: "Workout A — Lower Focus" })).toBeVisible();
   });
@@ -76,6 +108,69 @@ test.describe("Client — workout logging", () => {
     // Sarah has a seeded completed log for this workout
     const card = await openExercise(page, "Goblet Squat");
     await expect(card.getByText(/last session/i)).toBeVisible();
+  });
+
+  test("Prev. per set comes from the newest log that has it, in any workout", async ({ page }) => {
+    // Two logs dated in the future so they are the newest whatever earlier
+    // runs left behind, and outside this workout (as after a programme
+    // re-assignment). The newer one skips Goblet Squat and does only set 1
+    // of the deadlift.
+    const db = await signInAs(CLIENT.email, CLIENT.password);
+    const clientId = await userId(db);
+    const { data: exercises } = await db
+      .from("exercises")
+      .select("id, name")
+      .in("name", ["Goblet Squat", "Romanian Deadlift"]);
+    const idOf = (name: string) => exercises!.find((e) => e.name === name)!.id;
+    const hoursAhead = (h: number) => new Date(Date.now() + h * 3600_000).toISOString();
+
+    async function addLog(loggedAt: string, sets: Record<string, [number, number][]>) {
+      const { data: log } = await db
+        .from("workout_logs")
+        .insert({
+          client_id: clientId,
+          workout_name: "E2E Other Workout",
+          programme_name: "E2E",
+          status: "completed",
+          logged_at: loggedAt,
+        })
+        .select("id")
+        .single();
+      for (const [name, rows] of Object.entries(sets)) {
+        const { data: exLog } = await db
+          .from("exercise_logs")
+          .insert({ workout_log_id: log!.id, exercise_id: idOf(name), exercise_name: name })
+          .select("id")
+          .single();
+        await db.from("set_logs").insert(
+          rows.map(([setNumber, weightKg]) => ({
+            exercise_log_id: exLog!.id,
+            set_number: setNumber,
+            reps: 8,
+            weight_kg: weightKg,
+          }))
+        );
+      }
+      return log!.id;
+    }
+
+    const older = await addLog(hoursAhead(1), {
+      "Goblet Squat": [[1, 16], [2, 16], [3, 18]],
+      "Romanian Deadlift": [[1, 40], [2, 40], [3, 42.5]],
+    });
+    const newer = await addLog(hoursAhead(2), { "Romanian Deadlift": [[1, 45]] });
+    try {
+      await page.reload();
+      const squat = await openExercise(page, "Goblet Squat");
+      await expect(squat.getByTestId("set-prev")).toHaveText(["16kg", "16kg", "18kg"]);
+      const deadlift = await openExercise(page, "Romanian Deadlift");
+      await expect(deadlift.getByTestId("set-prev")).toHaveText(["45kg", "40kg", "42.5kg"]);
+      // The hint still describes one real session: the newest.
+      await expect(deadlift.getByText(/last session/i)).toContainText("45");
+      await expect(deadlift.getByText(/last session/i)).not.toContainText("42.5");
+    } finally {
+      await db.from("workout_logs").delete().in("id", [older, newer]);
+    }
   });
 
   test("set inputs accept weight and reps", async ({ page }) => {
@@ -138,6 +233,55 @@ test.describe("Client — workout logging", () => {
     await page.getByRole("button", { name: /complete workout/i }).click();
     await expect(page.getByTestId("complete-confirm")).toHaveCount(0);
     await expect(page).toHaveURL("/client");
+  });
+
+  test("progress survives a reload and Start over clears it", async ({ page }) => {
+    const card = await openExercise(page, "Goblet Squat");
+    await card.getByLabel("Set 1 weight").fill("21");
+    await card.getByTestId("set-btn").first().click();
+    const draft = await waitForDraft();
+
+    await page.reload();
+    await expect(page.getByTestId("resumed-banner")).toBeVisible();
+    const resumed = await openExercise(page, "Goblet Squat");
+    await expect(resumed.getByTestId("set-btn").first()).toHaveText("✓");
+    await expect(resumed.getByLabel("Set 1 weight")).toHaveValue("21");
+    // The home page flags the unfinished workout.
+    await page.goto("/client");
+    await expect(page.getByText("In progress").first()).toBeVisible();
+
+    await page.goBack();
+    await page.getByTestId("resumed-banner").getByRole("button", { name: /start over/i }).click();
+    await expect(page.getByTestId("resumed-banner")).toHaveCount(0);
+    const fresh = await openExercise(page, "Goblet Squat");
+    await expect(fresh.getByTestId("set-btn").first()).toHaveText("1");
+    const db = await signInAs(CLIENT.email, CLIENT.password);
+    await expect
+      .poll(async () => (await db.from("workout_logs").select("id").eq("id", draft.id)).data?.length)
+      .toBe(0);
+  });
+
+  test("completing a resumed workout finishes the same log", async ({ page }) => {
+    const card = await openExercise(page, "Goblet Squat");
+    await card.getByTestId("set-btn").first().click();
+    const draft = await waitForDraft();
+
+    await page.reload();
+    await page.getByRole("button", { name: /complete workout/i }).click();
+    await page.getByTestId("complete-confirm").getByRole("button", { name: /yes, finish workout/i }).click();
+    await expect(page).toHaveURL("/client");
+
+    const db = await signInAs(CLIENT.email, CLIENT.password);
+    const { data } = await db
+      .from("workout_logs")
+      .select("status, draft, exercise_logs(set_logs(set_number))")
+      .eq("id", draft.id)
+      .single();
+    expect(data).toEqual({
+      status: "completed",
+      draft: null,
+      exercise_logs: [{ set_logs: [{ set_number: 1 }] }],
+    });
   });
 
   test("back link returns to client workouts", async ({ page }) => {

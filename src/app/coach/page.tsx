@@ -12,7 +12,7 @@ export default async function CoachDashboard() {
   const t = copy.coach.dashboard;
   const [clients, logs, checkIns] = await Promise.all([
     getClients(),
-    getWorkoutLogs(undefined, 100),
+    getWorkoutLogs(undefined, 100, { completedOnly: true }),
     getCheckIns(undefined, 100),
   ]);
 

@@ -1,6 +1,7 @@
 // Hand-written to match supabase/migrations/0001_init.sql.
 // If you install the Supabase CLI later, this can be replaced with
 // `supabase gen types typescript --linked > src/lib/supabase/types.ts`.
+import type { WorkoutDraft } from "@/lib/types";
 
 export type Database = {
   public: {
@@ -136,6 +137,8 @@ export type Database = {
           programme_name: string;
           status: "completed" | "in_progress";
           logged_at: string;
+          /** The logger's unsaved set grid while status is in_progress. */
+          draft: WorkoutDraft | null;
         };
         Insert: {
           id?: string;
@@ -145,6 +148,7 @@ export type Database = {
           programme_name: string;
           status: "completed" | "in_progress";
           logged_at?: string;
+          draft?: WorkoutDraft | null;
         };
         Update: Partial<Database["public"]["Tables"]["workout_logs"]["Insert"]>;
         Relationships: [];

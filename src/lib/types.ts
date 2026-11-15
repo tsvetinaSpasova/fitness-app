@@ -77,6 +77,14 @@ export interface SetLog {
   weightKg: number | null;
 }
 
+/** A client's history for one exercise, as the workout logger shows it. */
+export interface PreviousSets {
+  /** Every set of the newest log, for the "last session" hint. */
+  lastSession: SetLog[];
+  /** Per set number (index 0 = set 1): the newest log that has that set. */
+  bySet: (SetLog | null)[];
+}
+
 export interface ExerciseLog {
   exerciseId: string;
   /** Name of the exercise as performed — history keeps making sense even if
@@ -94,6 +102,25 @@ export interface WorkoutLog {
   status: "completed" | "in_progress";
   loggedAt: string;
   exercises: ExerciseLog[];
+}
+
+/** One set in the logger, as the client has filled it in so far. */
+export interface DraftSet {
+  reps: number;
+  weightKg: number;
+  done: boolean;
+}
+
+/**
+ * An unfinished workout, saved as JSON on its in_progress log. Keyed by
+ * exercise so a resume still lines up if the coach edits the workout.
+ */
+export type WorkoutDraft = { exerciseId: string; sets: DraftSet[] }[];
+
+/** The in_progress log the logger resumes, if there is one. */
+export interface InProgressLog {
+  id: string;
+  draft: WorkoutDraft | null;
 }
 
 export interface Measurement {
